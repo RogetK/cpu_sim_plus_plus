@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -pedantic 
+CFLAGS = -Wall -pedantic -ggdb
 INCLUDES = -I ..
 
 .PHONY: all clean
