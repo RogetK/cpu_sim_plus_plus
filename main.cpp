@@ -50,6 +50,7 @@ void loader(char *input_file) {
 
 		case ' ':
 			assembly = assembly+3;
+			/* no break */
 		case '\t':
 			if (mode == text) {
 				iram[iram_loc] = (char *) malloc(40);
