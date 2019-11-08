@@ -12,6 +12,7 @@ using namespace std;
 char *iram[128];
 uint32_t dram[128];
 std::map<std::string, int> label_map;
+cpu_t cpu;
 
 void loader(char *input_file) {
 	ifstream in(input_file);
@@ -44,7 +45,7 @@ void loader(char *input_file) {
 			if (assembly[strlen(assembly)] == '\n'){
 				assembly[strlen(assembly)] = '\0';
 			}
-			// TODO: Dictionary
+			// TODO: Dictionary / Map
 			label_map.insert(std::make_pair(assembly, ram_loc));
 			break;
 
@@ -81,12 +82,23 @@ int main(int argc, char **argv) {
 	cout << "*** Processor Start ***" << endl;
 	loader(argv[1]);
 
-	cout << "*** Processor End ***" << endl;
-	cout << "Instructions:\n";
+
+
+	while (cpu.pc < 5) {
+		fetch();
+		cpu.pc++;
+		cpu.clk++;
+	}
+
+
+
+	cout << "*** Processor End ***\n" << endl;
+	cout << "Program counter: " << cpu.pc << endl;
+	cout << "CPU cycles: " << cpu.clk << endl;
+	cout << "\nInstructions:\n";
 	for (int i = 0; i < 5; i++){
 		cout << dram[i] <<iram[i] << endl;
 	}
-
 
 	return 0;
 }
