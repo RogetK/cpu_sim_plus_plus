@@ -38,7 +38,7 @@ typedef enum {
 	NOP = 0,
 	ADD, ADDI, SUB, SUBI,
 	MULT, DIVD,
-	LD,
+	LD, LDI,
 	HALT,
 	MAX_INSTRUCTIONS,
 }instructions_t;
@@ -50,7 +50,7 @@ const char *inst_string[MAX_INSTRUCTIONS] {
 	"nop",
 	"add", "addi", "sub", "subi",
 	"mult", "divd",
-	"ld",
+	"ld", "ldi",
 	"halt",
 };
 

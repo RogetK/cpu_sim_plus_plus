@@ -55,7 +55,6 @@ void loader(char *input_file) {
 			if (assembly[strlen(assembly)] == '\n'){
 				assembly[strlen(assembly)] = '\0';
 			}
-			// TODO: Dictionary / Map
 
 			label = strtok(assembly, " \n");
 			label_map.insert(std::make_pair(label, ram_loc));
@@ -99,7 +98,7 @@ void fetch(){
 void decode(){
 	char buffer[40];
 	strcpy(buffer, cpu.cir);
-	// TODO: DECODE
+
 	int arg_num = 0;
 	char *instruction = strtok(buffer, " ");
 
@@ -123,6 +122,7 @@ void decode(){
 
 		char *arg1_string = strtok(NULL, " ");
 		if (arg1_string[0] == 'r') cpu.decoded.src1 = (opreg_t) atoi(arg1_string+1);
+		else if (arg1_string[0] == '#') cpu.decoded.src1i = atoi(arg1_string+1);
 		break;
 	}
 	case 3:{
@@ -194,13 +194,19 @@ void execute(){
 		cpu.pc+=1;
 		break;
 
-	//TODO: LOAD/BRANCH
 	case LD:
 		src0 = REG_SRC1;
 		src1 = cpu.decoded.src2i;
 		REG_DST = dram[src0+src1];
 		cpu.pc+=1;
 		break;
+
+	case LDI:
+		REG_DST = cpu.decoded.src1i;
+		cpu.pc+=1;
+		break;
+
+	//TODO: BRANCH
 
 	case HALT:
 		halt_flag = 1;
@@ -228,6 +234,7 @@ void populate_args(){
 	instruction_args[MULT] 	= 3;
 	instruction_args[DIVD] 	= 3;
 	instruction_args[LD] 	= 3;
+	instruction_args[LDI]	= 2;
 
 	instruction_args[HALT] 	= 0; // halt
 }

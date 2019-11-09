@@ -4,6 +4,7 @@
     mult r6 r0 r6
     sub r0 r0 r0
     ld r1 r0 :y
+    ldi r5 #23
     halt
 	
 
