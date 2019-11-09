@@ -26,11 +26,34 @@ const char *mode_strings[] = {
 };
 
 
+typedef enum {
+	r0,
+	r1,
+	r2,
+	r3,
+	MAX_OPREG,
+} opreg_t;
+
+typedef enum {
+	NOP = 0,
+	add,
+	addi,
+	MAX_INSTRUCTIONS,
+}instructions_t;
+
 typedef struct {
-	int pc;
-	int clk;
+	instructions_t opcode;
+	opreg_t src0;
+	opreg_t src1;
+	opreg_t src2;
+} decode_instruction_t;
+
+typedef struct {
+	unsigned int pc;
+	unsigned int clk;
 	int reg_file[32];
 	char cir[40];
+	decode_instruction_t decoded;
 }cpu_t;
 
 

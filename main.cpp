@@ -14,6 +14,8 @@ uint32_t dram[128];
 std::map<std::string, int> label_map;
 cpu_t cpu;
 
+unsigned int iram_size = 0;
+
 void loader(char *input_file) {
 	ifstream in(input_file);
 	char *assembly;
@@ -56,6 +58,7 @@ void loader(char *input_file) {
 			if (mode == text) {
 				iram[iram_loc] = (char *) malloc(40);
 				strcpy(iram[iram_loc], assembly);
+				iram_size++;
 				iram_loc++;
 			} else if (mode == data) {
 				dram[dram_loc] = atoi(assembly);
@@ -75,14 +78,17 @@ void loader(char *input_file) {
 		}
 	}
 	in.close();
+	free(assembly);
 }
 
 void fetch(){
-
+	strcpy(cpu.cir, iram[cpu.pc]);
 }
 
 void decode(){
-
+	using namespace std;
+	char buffer[40];
+	strcpy(buffer, cpu.cir);
 }
 
 void execute(){
@@ -101,12 +107,11 @@ int main(int argc, char **argv) {
 
 	loader(argv[1]);
 
-
 	// PIPELINE
-	while (cpu.pc < 5) {
+	while (cpu.pc < iram_size) {
 
 		fetch();
-
+		decode();
 		cpu.pc++;
 		cpu.clk++;
 	}
