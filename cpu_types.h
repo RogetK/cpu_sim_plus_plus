@@ -39,6 +39,7 @@ typedef enum {
 	ADD, ADDI, SUB, SUBI,
 	MULT, DIVD,
 	LD, LDI,
+	CMP,
 	HALT,
 	MAX_INSTRUCTIONS,
 }instructions_t;
@@ -51,6 +52,7 @@ const char *inst_string[MAX_INSTRUCTIONS] {
 	"add", "addi", "sub", "subi",
 	"mult", "divd",
 	"ld", "ldi",
+	"cmp",
 	"halt",
 };
 
@@ -69,7 +71,13 @@ typedef struct {
 	uint32_t reg_file[32];
 	char cir[40];
 	decode_instruction_t decoded;
+	uint8_t cmp_reg;
 }cpu_t;
 
+typedef enum {
+	EQ = 1 << 0,
+	GT = 1 << 1,
+	LT = 1 << 2,
+}comparison_t;
 
 #endif /* CPU_TYPES_H_ */

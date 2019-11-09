@@ -5,6 +5,7 @@
     sub r0 r0 r0
     ld r1 r0 :y
     ldi r5 #23
+    cmp r0 r1
     halt
 	
 

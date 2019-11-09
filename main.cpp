@@ -207,6 +207,15 @@ void execute(){
 		break;
 
 	//TODO: BRANCH
+	case CMP:
+		src0 = cpu.reg_file[cpu.decoded.src0];
+		src1 = cpu.reg_file[cpu.decoded.src1];
+		if (src0 < src1) cpu.cmp_reg = LT;
+		else if (src0 > src1) cpu.cmp_reg = GT;
+		else if (src0 == src1) cpu.cmp_reg = EQ;
+		cpu.pc+=1;
+		break;
+
 
 	case HALT:
 		halt_flag = 1;
@@ -235,7 +244,7 @@ void populate_args(){
 	instruction_args[DIVD] 	= 3;
 	instruction_args[LD] 	= 3;
 	instruction_args[LDI]	= 2;
-
+	instruction_args[CMP]	= 2;
 	instruction_args[HALT] 	= 0; // halt
 }
 
@@ -252,7 +261,7 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < MAX_OPREG; i++)
 		cpu.reg_file[i] = (i+1)*10;
 
-
+	cpu.cmp_reg = 0;
 	populate_args();
 
 	loader(argv[1]);
@@ -275,7 +284,8 @@ int main(int argc, char **argv) {
 	cout << "Program counter: " << cpu.pc << endl;
 	cout << "CPU cycles: " << cpu.clk << endl;
 
-	cout << "\nRegister File:\n";
+	printf("\nCMP_REG: %d\n", cpu.cmp_reg);
+	cout << "Register File:\n";
 	for (int i = 0; i < MAX_OPREG; i++) {
 		cout << i << ":\t" <<cpu.reg_file[i] << endl;
 	}
