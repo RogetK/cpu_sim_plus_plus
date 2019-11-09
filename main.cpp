@@ -206,6 +206,13 @@ void execute(){
 		cpu.pc+=1;
 		break;
 
+	case STO:
+		src0 =	REG_SRC1;
+		src1 = 	cpu.decoded.src2i;
+		dram[src0 + src1] = REG_DST;
+		cpu.pc+=1;
+		break;
+
 	//TODO: BRANCH
 	case CMP:
 		src0 = cpu.reg_file[cpu.decoded.src0];
@@ -245,7 +252,8 @@ void populate_args(){
 	instruction_args[LD] 	= 3;
 	instruction_args[LDI]	= 2;
 	instruction_args[CMP]	= 2;
-	instruction_args[HALT] 	= 0; // halt
+	instruction_args[STO]	= 3;
+	instruction_args[HALT] 	= 0;
 }
 
 /****** MAIN *******/

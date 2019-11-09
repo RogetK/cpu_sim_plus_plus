@@ -6,8 +6,8 @@
     ld r1 r0 :y
     ldi r5 #23
     cmp r0 r1
+    sto r2 r0 :z
     halt
-	
 
 .data
 :x
@@ -18,5 +18,8 @@
 	4
 	5
 	6
-
+:z
+	0
+	0
+	0
 ;This is a test comment

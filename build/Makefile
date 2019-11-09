@@ -2,7 +2,7 @@ CC = g++
 CFLAGS = -Wall -pedantic -ggdb
 INCLUDES = -I ..
 
-.PHONY: all clean
+.PHONY: clean
 
 all: main
 	$(CC) $(CFLAGS) $(INCLUDES) -o cpu_sim *.o
