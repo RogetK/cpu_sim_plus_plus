@@ -112,8 +112,9 @@ void decode(){
 
 	switch (arg_num) {
 	case 1:{
-		char *arg0_string = strtok(NULL, " ");
+		char *arg0_string = strtok(NULL, " \n");
 		if (arg0_string[0] == 'r') cpu.decoded.src0 = (opreg_t) atoi(arg0_string+1);
+		else if (arg0_string[0] == ':') cpu.decoded.src0i = label_map.find(arg0_string)->second;
 		break;
 	}
 	case 2:{

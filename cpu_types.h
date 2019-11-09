@@ -59,6 +59,7 @@ const char *inst_string[MAX_INSTRUCTIONS] {
 typedef struct {
 	instructions_t opcode;
 	opreg_t src0;
+	int src0i;
 	opreg_t src1;
 	int src1i;
 	opreg_t src2;
