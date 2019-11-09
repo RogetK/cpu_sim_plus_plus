@@ -62,8 +62,17 @@ void loader(char *input_file) {
 				dram_loc++;
 			}
 			break;
-		}
 
+		case '\n':
+			break;
+
+		case ';':
+			cout << "Comment: " << assembly+1 << endl;
+			break;
+
+		default:
+			break;
+		}
 	}
 	in.close();
 }
@@ -72,26 +81,39 @@ void fetch(){
 
 }
 
-// MAIN
+void decode(){
+
+}
+
+void execute(){
+
+}
+
+/****** MAIN *******/
 
 int main(int argc, char **argv) {
-	if (argc < 2) {
-		printf("Not enough arguments\n");
-		return 0;
+	if (argc != 2) {
+		cout << "Incorrect number of arguments" << endl;
+		return EXIT_FAILURE;
+	} else {
+		cout << "*** Processor Start ***" << endl;
 	}
-	cout << "*** Processor Start ***" << endl;
+
 	loader(argv[1]);
 
 
-
+	// PIPELINE
 	while (cpu.pc < 5) {
+
 		fetch();
+
 		cpu.pc++;
 		cpu.clk++;
 	}
 
 
 
+	/*** OUTPUT PRINTS ***/
 	cout << "*** Processor End ***\n" << endl;
 	cout << "Program counter: " << cpu.pc << endl;
 	cout << "CPU cycles: " << cpu.clk << endl;

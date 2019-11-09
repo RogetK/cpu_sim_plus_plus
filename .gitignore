@@ -34,3 +34,4 @@
 .settings/language.settings.xml
 main.cpp
 *.cproject
+*.settings.xml
