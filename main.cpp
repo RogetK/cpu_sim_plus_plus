@@ -86,9 +86,14 @@ void fetch(){
 }
 
 void decode(){
-	using namespace std;
 	char buffer[40];
 	strcpy(buffer, cpu.cir);
+	char *tok = strtok(buffer, " ");
+	while (tok != NULL) {
+		cout << tok << endl;
+		tok = strtok(NULL, " ");
+	}
+
 }
 
 void execute(){
