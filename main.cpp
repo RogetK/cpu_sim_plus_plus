@@ -8,6 +8,11 @@
 
 using namespace std;
 
+#define REG_DST cpu.reg_file[cpu.decoded.src0]
+#define REG_SRC1 cpu.reg_file[cpu.decoded.src1]
+#define REG_SRC2 cpu.reg_file[cpu.decoded.src2]
+
+
 // Variable declaration
 char *iram[128];
 uint32_t dram[128];
@@ -15,6 +20,7 @@ std::map<std::string, int> label_map;
 cpu_t cpu;
 
 unsigned int iram_size = 0;
+volatile int halt_flag = 0;
 
 void loader(char *input_file) {
 	ifstream in(input_file);
@@ -28,6 +34,8 @@ void loader(char *input_file) {
 
 	while(in){
 		in.getline(assembly, 40);
+
+		char *label;
 
 		switch(assembly[0]) {
 		case '.':
@@ -48,7 +56,10 @@ void loader(char *input_file) {
 				assembly[strlen(assembly)] = '\0';
 			}
 			// TODO: Dictionary / Map
-			label_map.insert(std::make_pair(assembly, ram_loc));
+
+			label = strtok(assembly, " \n");
+			label_map.insert(std::make_pair(label, ram_loc));
+
 			break;
 
 		case ' ':
@@ -78,7 +89,7 @@ void loader(char *input_file) {
 		}
 	}
 	in.close();
-	free(assembly);
+//	free(assembly);
 }
 
 void fetch(){
@@ -88,16 +99,137 @@ void fetch(){
 void decode(){
 	char buffer[40];
 	strcpy(buffer, cpu.cir);
-	char *tok = strtok(buffer, " ");
-	while (tok != NULL) {
-		cout << tok << endl;
-		tok = strtok(NULL, " ");
+	// TODO: DECODE
+	int arg_num = 0;
+	char *instruction = strtok(buffer, " ");
+
+	for (int i = 0; i < MAX_INSTRUCTIONS; ++i) {
+		if (strcmp(instruction, inst_string[i]) == 0) {
+			cpu.decoded.opcode = (instructions_t) i;
+		}
+	}
+
+	arg_num = instruction_args.find(cpu.decoded.opcode)->second;
+
+	switch (arg_num) {
+	case 1:{
+		char *arg0_string = strtok(NULL, " ");
+		if (arg0_string[0] == 'r') cpu.decoded.src0 = (opreg_t) atoi(arg0_string+1);
+		break;
+	}
+	case 2:{
+		char *arg0_string = strtok(NULL, " ");
+		if (arg0_string[0] == 'r') cpu.decoded.src0 = (opreg_t) atoi(arg0_string+1);
+
+		char *arg1_string = strtok(NULL, " ");
+		if (arg1_string[0] == 'r') cpu.decoded.src1 = (opreg_t) atoi(arg1_string+1);
+		break;
+	}
+	case 3:{
+		char *arg0_string = strtok(NULL, " ");
+		if (arg0_string[0] == 'r') cpu.decoded.src0 = (opreg_t) atoi(arg0_string+1);
+
+		char *arg1_string = strtok(NULL, " ");
+		if (arg1_string[0] == 'r') cpu.decoded.src1 = (opreg_t) atoi(arg1_string+1);
+
+		char *arg2_string = strtok(NULL, " \n");
+		if (arg2_string[0] == '#') cpu.decoded.src2i = atoi(arg2_string+1);
+		else if (arg2_string[0] == 'r') cpu.decoded.src2 = (opreg_t) atoi(arg2_string+1);
+		else if (arg2_string[0] == ':') cpu.decoded.src2i = label_map.find(arg2_string)->second;
+		break;
+	}
+
 	}
 
 }
 
 void execute(){
 
+	uint32_t src0, src1;
+	switch (cpu.decoded.opcode) {
+	case NOP:
+		// increase pc;
+		cpu.pc+=1;
+		break;
+
+	case ADD:
+		src0 = REG_SRC1;
+		src1 = REG_SRC2;
+		REG_DST = src0 + src1;
+		cpu.pc+=1;
+		break;
+
+	case ADDI:
+		src0 = REG_SRC1;
+		src1 = cpu.decoded.src2i;
+		REG_DST = src0 + src1;
+		cpu.pc+=1;
+		break;
+
+	case SUB:
+		src0 = REG_SRC1;
+		src1 = REG_SRC2;
+		REG_DST = src0 - src1;
+		cpu.pc+=1;
+		break;
+
+	case SUBI:
+		src0 = REG_SRC1;
+		src1 = cpu.decoded.src2i;
+		REG_DST = src0 - src1;
+		cpu.pc+=1;
+		break;
+
+	case MULT:
+		src0 = REG_SRC1;
+		src1 = REG_SRC2;
+		REG_DST = src0 * src1;
+		cpu.pc+=1;
+		break;
+
+	case DIVD:
+		src0 = REG_SRC1;
+		src1 = REG_SRC2;
+		REG_DST = src0 / src1;
+		cpu.pc+=1;
+		break;
+
+	//TODO: LOAD/BRANCH
+	case LD:
+		src0 = REG_SRC1;
+		src1 = cpu.decoded.src2i;
+		REG_DST = dram[src0+src1];
+		cpu.pc+=1;
+		break;
+
+	case HALT:
+		halt_flag = 1;
+		cpu.pc+=1;
+		break;
+
+	default:
+		break;
+
+	}
+
+}
+
+void write(){
+
+}
+
+void populate_args(){
+
+	instruction_args[NOP] 	= 0;
+	instruction_args[ADD] 	= 3;
+	instruction_args[ADDI] 	= 3;
+	instruction_args[SUB] 	= 3;
+	instruction_args[SUBI] 	= 3;
+	instruction_args[MULT] 	= 3;
+	instruction_args[DIVD] 	= 3;
+	instruction_args[LD] 	= 3;
+
+	instruction_args[HALT] 	= 0; // halt
 }
 
 /****** MAIN *******/
@@ -110,6 +242,12 @@ int main(int argc, char **argv) {
 		cout << "*** Processor Start ***" << endl;
 	}
 
+	for (int i = 0; i < MAX_OPREG; i++)
+		cpu.reg_file[i] = (i+1)*10;
+
+
+	populate_args();
+
 	loader(argv[1]);
 
 	// PIPELINE
@@ -117,8 +255,10 @@ int main(int argc, char **argv) {
 
 		fetch();
 		decode();
-		cpu.pc++;
+		execute();
+		write();
 		cpu.clk++;
+		if (halt_flag) break;
 	}
 
 
@@ -127,8 +267,14 @@ int main(int argc, char **argv) {
 	cout << "*** Processor End ***\n" << endl;
 	cout << "Program counter: " << cpu.pc << endl;
 	cout << "CPU cycles: " << cpu.clk << endl;
+
+	cout << "\nRegister File:\n";
+	for (int i = 0; i < MAX_OPREG; i++) {
+		cout << i << ":\t" <<cpu.reg_file[i] << endl;
+	}
 	cout << "\nInstructions:\n";
-	for (int i = 0; i < 5; i++){
+	for (int i = 0; i < (int)iram_size - 1; i++){
+		cout << i << "\t";
 		cout << dram[i] <<iram[i] << endl;
 	}
 
