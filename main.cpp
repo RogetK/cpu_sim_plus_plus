@@ -120,9 +120,10 @@ void decode(){
 		char *arg0_string = strtok(NULL, " ");
 		if (arg0_string[0] == 'r') cpu.decoded.src0 = (opreg_t) atoi(arg0_string+1);
 
-		char *arg1_string = strtok(NULL, " ");
+		char *arg1_string = strtok(NULL, " \n");
 		if (arg1_string[0] == 'r') cpu.decoded.src1 = (opreg_t) atoi(arg1_string+1);
 		else if (arg1_string[0] == '#') cpu.decoded.src1i = atoi(arg1_string+1);
+		else if (arg1_string[0] == ':') cpu.decoded.src1i = label_map.find(arg1_string)->second;
 		break;
 	}
 	case 3:{
@@ -300,7 +301,7 @@ int main(int argc, char **argv) {
 	cout << "\nInstructions:\n";
 	for (int i = 0; i < (int)iram_size - 1; i++){
 		cout << i << "\t";
-		cout << dram[i] <<iram[i] << endl;
+		cout << dram[i] << '\t' << iram[i] << endl;
 	}
 
 	return 0;
