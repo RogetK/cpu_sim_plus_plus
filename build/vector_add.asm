@@ -1,23 +1,28 @@
 .text
-    add r2 r0 r0
-    divd r0 r3 r1
-    mult r6 r0 r6
-    sub r0 r0 r0
-    ld r1 r0 :y
-    ldi r5 #23
-    halt
+    ldi r0 #0
+    ld r1 r0 :size
+:loop_start
+    ld r2 r0 :x
+    ld r3 r0 :y
+    add r4 r2 r3
+    sto r4 r0 :z
+    addi r0 r0 #1
     cmp r0 r1
-    sto r2 r0 :z
+    blt :loop_start
+
+    halt
 
 .data
+:size
+    3
 :x
-    1
-	2
-	3
-:y
+    2
 	4
+	7
+:y
+	3
 	5
-	6
+	8
 :z
 	0
 	0

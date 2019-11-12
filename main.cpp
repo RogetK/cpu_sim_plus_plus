@@ -219,27 +219,31 @@ void execute(){
 	case CMP:
 		src0 = cpu.reg_file[cpu.decoded.src0];
 		src1 = cpu.reg_file[cpu.decoded.src1];
-		if (src0 < src1) cpu.cmp_reg = LT;
-		else if (src0 > src1) cpu.cmp_reg = GT;
-		else if (src0 == src1) cpu.cmp_reg = EQ;
+		if (src0 < src1) cpu.cmp_reg = (uint8_t) LT;
+		else if (src0 > src1) cpu.cmp_reg = (uint8_t) GT;
+		else if (src0 == src1) cpu.cmp_reg = (uint8_t) EQ;
 		cpu.pc+=1;
 		break;
 
 	case BLT:
-		if (cpu.cmp_reg == LT)
+		if (cpu.cmp_reg == LT) {
 			cpu.pc = cpu.decoded.src0i;
+		}
+		else cpu.pc+=1;
 		break;
 
 	case BGT:
-		if (cpu.cmp_reg == GT)
+		if (cpu.cmp_reg == GT) {
 			cpu.pc = cpu.decoded.src0i;
+		}
+		else cpu.pc+=1;
 		break;
 
 	case BEQ:
 		if (cpu.cmp_reg == EQ)
 			cpu.pc = cpu.decoded.src0i;
+		else cpu.pc+=1;
 		break;
-
 
 	case HALT:
 		halt_flag = 1;
@@ -258,7 +262,7 @@ void write(){
 }
 
 void populate_args(){
-
+	//TODO: INSTRUCTION NUMBER OF ARGUMENTS ASSIGNMENT
 	instruction_args[NOP] 	= 0;
 	instruction_args[ADD] 	= 3;
 	instruction_args[ADDI] 	= 3;
@@ -271,7 +275,10 @@ void populate_args(){
 	instruction_args[CMP]	= 2;
 	instruction_args[STO]	= 3;
 	instruction_args[BLT]	= 1;
+	instruction_args[BGT]	= 1;
+	instruction_args[BEQ]	= 1;
 	instruction_args[HALT] 	= 0;
+
 }
 
 /****** MAIN *******/
@@ -284,22 +291,26 @@ int main(int argc, char **argv) {
 		cout << "*** Processor Start ***" << endl;
 	}
 
-	for (int i = 0; i < MAX_OPREG; i++)
-		cpu.reg_file[i] = (i+1)*10;
+//	for (int i = 0; i < MAX_OPREG; i++)
+//		cpu.reg_file[i] = (i+1)*10;
 
 	cpu.cmp_reg = 0;
 	populate_args();
-
+	cout << argv[1] << endl;
 	loader(argv[1]);
 
 	// PIPELINE
 	while (cpu.pc < iram_size && halt_flag != 1) {
 
+		cout << "fetch\n";
 		fetch();
+		cout << "Decode\n";
 		decode();
+		cout << "Exec\n";
 		execute();
 		write();
 		cpu.clk++;
+		cout << "r0: " << cpu.reg_file[0] << endl;
 
 	}
 
@@ -309,14 +320,16 @@ int main(int argc, char **argv) {
 	cout << "*** Processor End ***\n" << endl;
 	cout << "Program counter: " << cpu.pc << endl;
 	cout << "CPU cycles: " << cpu.clk << endl;
+	cout << "HALT: " << halt_flag << endl;
 
 	printf("\nCMP_REG: %d\n", cpu.cmp_reg);
 	cout << "Register File:\n";
 	for (int i = 0; i < MAX_OPREG; i++) {
 		cout << i << ":\t" <<cpu.reg_file[i] << endl;
 	}
+	cout << "CMP: " << cpu.cmp_reg << endl;
 	cout << "\nInstructions:\n";
-	for (int i = 0; i < (int)iram_size; i++){
+	for (int i = 0; i < 16; i++){
 		cout << i << "\t";
 		cout << dram[i] << '\t' << iram[i] << endl;
 	}

@@ -10,6 +10,8 @@
     sto r2 r0 :z
 
 .data
+:size
+    3
 :x
     1
 	2

@@ -67,12 +67,13 @@ typedef struct {
 } decode_instruction_t;
 
 typedef struct {
-	unsigned int pc;
-	unsigned int clk;
+	unsigned int pc = 0;
+	unsigned int clk = 0;
 	uint32_t reg_file[32];
 	char cir[40];
 	decode_instruction_t decoded;
-	uint8_t cmp_reg;
+	unsigned int cmp_reg = 0;
+	unsigned int halt_reg = 0;
 }cpu_t;
 
 typedef enum {
