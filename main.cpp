@@ -226,7 +226,18 @@ void execute(){
 		break;
 
 	case BLT:
-		cpu.pc = cpu.decoded.src0i;
+		if (cpu.cmp_reg == LT)
+			cpu.pc = cpu.decoded.src0i;
+		break;
+
+	case BGT:
+		if (cpu.cmp_reg == GT)
+			cpu.pc = cpu.decoded.src0i;
+		break;
+
+	case BEQ:
+		if (cpu.cmp_reg == EQ)
+			cpu.pc = cpu.decoded.src0i;
 		break;
 
 
@@ -282,14 +293,14 @@ int main(int argc, char **argv) {
 	loader(argv[1]);
 
 	// PIPELINE
-	while (cpu.pc < iram_size) {
+	while (cpu.pc < iram_size && halt_flag != 1) {
 
 		fetch();
 		decode();
 		execute();
 		write();
 		cpu.clk++;
-		if (halt_flag) break;
+
 	}
 
 
