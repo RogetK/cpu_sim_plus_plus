@@ -20,7 +20,6 @@ std::map<std::string, int> label_map;
 cpu_t cpu;
 
 unsigned int iram_size = 0;
-volatile int halt_flag = 0;
 
 void loader(char *input_file) {
 	ifstream in(input_file);
@@ -246,7 +245,7 @@ void execute(){
 		break;
 
 	case HALT:
-		halt_flag = 1;
+		cpu.halt_reg= 1;
 		cpu.pc+=1;
 		break;
 
@@ -291,26 +290,19 @@ int main(int argc, char **argv) {
 		cout << "*** Processor Start ***" << endl;
 	}
 
-//	for (int i = 0; i < MAX_OPREG; i++)
-//		cpu.reg_file[i] = (i+1)*10;
-
 	cpu.cmp_reg = 0;
 	populate_args();
 	cout << argv[1] << endl;
 	loader(argv[1]);
 
 	// PIPELINE
-	while (cpu.pc < iram_size && halt_flag != 1) {
+	while (cpu.pc < iram_size && cpu.halt_reg != 1) {
 
-		cout << "fetch\n";
 		fetch();
-		cout << "Decode\n";
 		decode();
-		cout << "Exec\n";
 		execute();
 		write();
 		cpu.clk++;
-		cout << "r0: " << cpu.reg_file[0] << endl;
 
 	}
 
@@ -320,7 +312,7 @@ int main(int argc, char **argv) {
 	cout << "*** Processor End ***\n" << endl;
 	cout << "Program counter: " << cpu.pc << endl;
 	cout << "CPU cycles: " << cpu.clk << endl;
-	cout << "HALT: " << halt_flag << endl;
+	cout << "HALT: " << cpu.halt_reg << endl;
 
 	printf("\nCMP_REG: %d\n", cpu.cmp_reg);
 	cout << "Register File:\n";
@@ -329,7 +321,7 @@ int main(int argc, char **argv) {
 	}
 	cout << "CMP: " << cpu.cmp_reg << endl;
 	cout << "\nInstructions:\n";
-	for (int i = 0; i < 16; i++){
+	for (int i = 0; (i < (int) sizeof(iram)) || (i < (int) sizeof(dram)); i++){
 		cout << i << "\t";
 		cout << dram[i] << '\t' << iram[i] << endl;
 	}
