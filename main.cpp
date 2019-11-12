@@ -225,6 +225,10 @@ void execute(){
 		cpu.pc+=1;
 		break;
 
+	case BLT:
+		cpu.pc = cpu.decoded.src0i;
+		break;
+
 
 	case HALT:
 		halt_flag = 1;
@@ -255,6 +259,7 @@ void populate_args(){
 	instruction_args[LDI]	= 2;
 	instruction_args[CMP]	= 2;
 	instruction_args[STO]	= 3;
+	instruction_args[BLT]	= 1;
 	instruction_args[HALT] 	= 0;
 }
 
@@ -300,7 +305,7 @@ int main(int argc, char **argv) {
 		cout << i << ":\t" <<cpu.reg_file[i] << endl;
 	}
 	cout << "\nInstructions:\n";
-	for (int i = 0; i < (int)iram_size - 1; i++){
+	for (int i = 0; i < (int)iram_size; i++){
 		cout << i << "\t";
 		cout << dram[i] << '\t' << iram[i] << endl;
 	}

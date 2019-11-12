@@ -39,7 +39,7 @@ typedef enum {
 	ADD, ADDI, SUB, SUBI,
 	MULT, DIVD,
 	LD, LDI, STO,
-	CMP,
+	CMP, BLT,
 	HALT,
 	MAX_INSTRUCTIONS,
 }instructions_t;
@@ -52,7 +52,7 @@ const char *inst_string[MAX_INSTRUCTIONS] {
 	"add", "addi", "sub", "subi",
 	"mult", "divd",
 	"ld", "ldi", "sto",
-	"cmp",
+	"cmp", "blt",
 	"halt",
 };
 
