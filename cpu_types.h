@@ -17,7 +17,7 @@ typedef enum {
 	no_mode = -1,
 	data,
 	text,
-	MAX_MODES,
+	MAX_MODES
 } cpu_loader_mode_t;
 
 const char *mode_strings[] = {
@@ -30,7 +30,7 @@ typedef enum {
 	r0 = 0, r1, r2, r3,
 	r4, r5, r6, r7,
 //	r8, r9, r10, r11,
-	MAX_OPREG,
+	MAX_OPREG
 } opreg_t;
 
 
@@ -41,13 +41,13 @@ typedef enum {
 	LD, LDI, STO,
 	CMP, BLT, BGT, BEQ,
 	HALT,
-	MAX_INSTRUCTIONS,
+	MAX_INSTRUCTIONS
 }instructions_t;
 
 std::map<int, int> instruction_args;
 
 
-const char *inst_string[MAX_INSTRUCTIONS] {
+const char *inst_string[MAX_INSTRUCTIONS] = {
 	"nop",
 	"add", "addi", "sub", "subi",
 	"mult", "divd",
@@ -67,19 +67,19 @@ typedef struct {
 } decode_instruction_t;
 
 typedef struct {
-	unsigned int pc = 0;
-	unsigned int clk = 0;
+	unsigned int pc;
+	unsigned int clk;
 	uint32_t reg_file[32];
 	char cir[40];
 	decode_instruction_t decoded;
-	unsigned int cmp_reg = 0;
-	unsigned int halt_reg = 0;
+	unsigned int cmp_reg;
+	unsigned int halt_reg;
 }cpu_t;
 
 typedef enum {
 	EQ = 1 << 0,
 	GT = 1 << 1,
-	LT = 1 << 2,
+	LT = 1 << 2
 }comparison_t;
 
 #endif /* CPU_TYPES_H_ */
