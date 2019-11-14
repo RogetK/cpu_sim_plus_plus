@@ -320,11 +320,12 @@ int main(int argc, char **argv) {
 		cout << i << ":\t" <<cpu.reg_file[i] << endl;
 	}
 	cout << "CMP: " << cpu.cmp_reg << endl;
-	cout << "\nInstructions:\n";
-	for (int i = 0; (i < (int) sizeof(iram)) || (i < (int) sizeof(dram)); i++){
+
+ 	cout << "\nInstructions:\n";
+	for (int i = 0; i < 128; i++){
 		cout << i << "\t";
 		cout << dram[i] << '\t' << iram[i] << endl;
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
