@@ -35,3 +35,4 @@
 main.cpp
 *.cproject
 *.settings.xml
+/build/cpu_sim
