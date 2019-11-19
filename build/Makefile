@@ -12,3 +12,4 @@ main: ../main.cpp
 
 clean: 
 	rm -f *.o
+	rm cpu_sim
