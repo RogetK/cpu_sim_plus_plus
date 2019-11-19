@@ -30,9 +30,10 @@
 *.exe
 *.out
 *.app
+
+# Eclipse
 .cproject
 .settings/language.settings.xml
-main.cpp
 *.cproject
 *.settings.xml
 /build/cpu_sim
