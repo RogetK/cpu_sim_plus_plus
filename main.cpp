@@ -94,13 +94,13 @@ void loader(char *input_file) {
 
 void fetch(){
 //	printf("fetch: %d\n", cpu.pc);
-	strcpy(cpu.cir, iram[cpu.pc]);
+	strcpy(cpu.cir[0], iram[cpu.pc]);
 }
 
 void decode(){
-	if (cpu.cir[0] == 0) return;
+	if (cpu.cir[0][0] == 0) return;
 	char buffer[40];
-	strcpy(buffer, cpu.cir);
+	strcpy(buffer, cpu.cir[0]);
 
 
 	int arg_num = 0;
