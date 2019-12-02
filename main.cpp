@@ -18,8 +18,9 @@ char *iram[128];
 uint32_t dram[128];
 std::map<std::string, int> label_map;
 cpu_t cpu;
-
 unsigned int iram_size = 0;
+
+/*** FUNCTION DECLARATION ***/
 
 void loader(char *input_file) {
 	ifstream in(input_file);
@@ -86,17 +87,21 @@ void loader(char *input_file) {
 			break;
 		}
 	}
+
 	in.close();
 //	free(assembly);
 }
 
 void fetch(){
+//	printf("fetch: %d\n", cpu.pc);
 	strcpy(cpu.cir, iram[cpu.pc]);
 }
 
 void decode(){
+	if (cpu.cir[0] == 0) return;
 	char buffer[40];
 	strcpy(buffer, cpu.cir);
+
 
 	int arg_num = 0;
 	char *instruction = strtok(buffer, " ");
@@ -142,6 +147,17 @@ void decode(){
 
 	}
 
+}
+
+void flush(){
+	memset(cpu.cir, 0, 40);
+	cpu.decoded.opcode = NOP;
+//	cpu.decoded.src0 = 0;
+	cpu.decoded.src0i = 0;
+//	cpu.decoded.src1 = 0;
+	cpu.decoded.src1i = 0;
+//	cpu.decoded.src2 = 0;
+	cpu.decoded.src2i = 0;
 }
 
 void execute(){
@@ -227,6 +243,7 @@ void execute(){
 	case BLT:
 		if (cpu.cmp_reg == LT) {
 			cpu.pc = cpu.decoded.src0i;
+			flush();
 		}
 		else cpu.pc+=1;
 		break;
@@ -234,13 +251,16 @@ void execute(){
 	case BGT:
 		if (cpu.cmp_reg == GT) {
 			cpu.pc = cpu.decoded.src0i;
+			flush();
 		}
 		else cpu.pc+=1;
 		break;
 
 	case BEQ:
-		if (cpu.cmp_reg == EQ)
+		if (cpu.cmp_reg == EQ) {
 			cpu.pc = cpu.decoded.src0i;
+			flush();
+		}
 		else cpu.pc+=1;
 		break;
 
@@ -280,6 +300,12 @@ void populate_args(){
 
 }
 
+void pipeline() {
+	execute();
+	decode();
+	fetch();
+}
+
 /****** MAIN *******/
 
 int main(int argc, char **argv) {
@@ -298,9 +324,7 @@ int main(int argc, char **argv) {
 	// PIPELINE
 	while (cpu.pc < iram_size && cpu.halt_reg != 1) {
 
-		fetch();
-		decode();
-		execute();
+		pipeline();
 		write();
 		cpu.clk++;
 

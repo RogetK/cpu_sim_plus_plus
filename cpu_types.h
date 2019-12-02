@@ -71,9 +71,11 @@ typedef struct {
 	unsigned int clk;
 	uint32_t reg_file[32];
 	char cir[40];
+	uint8_t cir_ready;
 	decode_instruction_t decoded;
 	unsigned int cmp_reg;
 	unsigned int halt_reg;
+	uint32_t stack[40];
 }cpu_t;
 
 typedef enum {

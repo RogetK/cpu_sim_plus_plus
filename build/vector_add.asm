@@ -11,6 +11,8 @@
     blt :loop_start
 
     halt
+    nop
+    nop
 
 .data
 :size
