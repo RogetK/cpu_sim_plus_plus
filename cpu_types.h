@@ -66,6 +66,12 @@ typedef struct {
 	int src2i;
 } decode_instruction_t;
 
+// TODO: Write back stage
+typedef struct {
+	opreg_t dest;
+
+};
+
 typedef struct {
 	unsigned int pc;
 	unsigned int clk;
@@ -83,5 +89,7 @@ typedef enum {
 	GT = 1 << 1,
 	LT = 1 << 2
 }comparison_t;
+
+
 
 #endif /* CPU_TYPES_H_ */

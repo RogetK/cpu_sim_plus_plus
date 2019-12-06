@@ -312,9 +312,10 @@ int main(int argc, char **argv) {
 		cout << "*** Processor Start ***" << endl;
 	}
 
+	cout << "Input file: " << argv[1] << endl;
 	cpu.cmp_reg = 0;
+
 	populate_args();
-	cout << argv[1] << endl;
 	loader(argv[1]);
 
 	// PIPELINE
