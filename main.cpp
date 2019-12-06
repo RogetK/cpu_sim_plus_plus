@@ -24,8 +24,8 @@ unsigned int iram_size = 0;
 
 void loader(char *input_file) {
 	ifstream in(input_file);
-	char *assembly;
-	assembly = (char *) calloc(40, sizeof(char*));
+	char *assembly = new char [40];
+//	assembly = (char *) calloc(40, sizeof(char*));
 
 	int mode = no_mode;
 	volatile int iram_loc = 0;
@@ -89,11 +89,10 @@ void loader(char *input_file) {
 	}
 
 	in.close();
-//	free(assembly);
+	delete(assembly);
 }
 
 void fetch(){
-//	printf("fetch: %d\n", cpu.pc);
 	strcpy(cpu.cir[0], iram[cpu.pc]);
 }
 
@@ -152,11 +151,8 @@ void decode(){
 void flush(){
 	memset(cpu.cir, 0, 40);
 	cpu.decoded.opcode = NOP;
-//	cpu.decoded.src0 = 0;
 	cpu.decoded.src0i = 0;
-//	cpu.decoded.src1 = 0;
 	cpu.decoded.src1i = 0;
-//	cpu.decoded.src2 = 0;
 	cpu.decoded.src2i = 0;
 }
 
