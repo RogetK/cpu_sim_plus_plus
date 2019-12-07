@@ -69,12 +69,13 @@ typedef struct {
 // TODO: Write back stage
 typedef struct {
 	opreg_t dest;
-
+	uint32_t output;
 } wbreg_t;
 
 typedef struct {
 	unsigned int pc;
 	unsigned int clk;
+	unsigned int instructions_executed;
 	uint32_t reg_file[32];
 	char cir[4][40];
 	uint8_t cir_ready;
@@ -82,6 +83,7 @@ typedef struct {
 	unsigned int cmp_reg;
 	unsigned int halt_reg;
 	uint32_t stack[40];
+	wbreg_t writeback_reg;
 }cpu_t;
 
 typedef enum {

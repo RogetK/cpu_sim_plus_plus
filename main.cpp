@@ -25,7 +25,6 @@ unsigned int iram_size = 0;
 void loader(char *input_file) {
 	ifstream in(input_file);
 	char *assembly = new char [40];
-//	assembly = (char *) calloc(40, sizeof(char*));
 
 	int mode = no_mode;
 	volatile int iram_loc = 0;
@@ -159,6 +158,7 @@ void flush(){
 void execute(){
 
 	uint32_t src0, src1;
+	cpu.instructions_executed++;
 	switch (cpu.decoded.opcode) {
 	case NOP:
 		// increase pc;
@@ -272,7 +272,7 @@ void execute(){
 
 }
 
-void write(){
+void writeback(){
 
 }
 
@@ -297,6 +297,7 @@ void populate_args(){
 }
 
 void pipeline() {
+	writeback();
 	execute();
 	decode();
 	fetch();
@@ -322,7 +323,6 @@ int main(int argc, char **argv) {
 	while (cpu.pc < iram_size && cpu.halt_reg != 1) {
 
 		pipeline();
-		write();
 		cpu.clk++;
 
 	}
@@ -333,6 +333,7 @@ int main(int argc, char **argv) {
 	cout << "*** Processor End ***\n" << endl;
 	cout << "Program counter: " << cpu.pc << endl;
 	cout << "CPU cycles: " << cpu.clk << endl;
+	cout << "Number of instructions run: " << cpu.instructions_executed << endl;
 	cout << "HALT: " << cpu.halt_reg << endl;
 
 	printf("\nCMP_REG: %d\n", cpu.cmp_reg);
