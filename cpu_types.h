@@ -70,7 +70,7 @@ typedef struct {
 typedef struct {
 	opreg_t dest;
 
-};
+} wbreg_t;
 
 typedef struct {
 	unsigned int pc;
