@@ -30,6 +30,7 @@ typedef enum {
 	r0 = 0, r1, r2, r3,
 	r4, r5, r6, r7,
 //	r8, r9, r10, r11,
+	cmp,
 	MAX_OPREG
 } opreg_t;
 
@@ -66,7 +67,6 @@ typedef struct {
 	int src2i;
 } decode_instruction_t;
 
-// TODO: Write back stage
 typedef struct {
 	opreg_t dest;
 	uint32_t output;
@@ -80,7 +80,6 @@ typedef struct {
 	char cir[4][40];
 	uint8_t cir_ready;
 	decode_instruction_t decoded;
-	unsigned int cmp_reg;
 	unsigned int halt_reg;
 	uint32_t stack[40];
 	wbreg_t writeback_reg;

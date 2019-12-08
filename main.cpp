@@ -193,58 +193,68 @@ void execute(){
 		break;
 
 	case MULT:
-		src1 = REG_SRC1;
-		src2 = REG_SRC2;
-		REG_DST = src1 * src2;
+		src1 = cpu.reg_file[cpu.decoded.src1];
+		src2 = cpu.reg_file[cpu.decoded.src2];
+		cpu.writeback_reg.dest = cpu.decoded.src0;
+		cpu.writeback_reg.output = src1 * src2;
 		break;
 
 	case DIVD:
-		src0 = REG_SRC1;
-		src1 = REG_SRC2;
-		REG_DST = src0 / src1;
+		src1 = cpu.reg_file[cpu.decoded.src1];
+		src2 = cpu.reg_file[cpu.decoded.src2];
+		cpu.writeback_reg.dest = cpu.decoded.src0;
+		cpu.writeback_reg.output = src1 / src2;
 		break;
 
 	case LD:
-		src0 = REG_SRC1;
-		src1 = cpu.decoded.src2i;
-		REG_DST = dram[src0+src1];
+		src1 = cpu.reg_file[cpu.decoded.src1];
+		src2 = cpu.decoded.src2i;
+		cpu.writeback_reg.dest = cpu.decoded.src0;
+		cpu.writeback_reg.output= dram[src1+src2];
 		break;
 
 	case LDI:
-		REG_DST = cpu.decoded.src1i;
+		cpu.writeback_reg.dest = cpu.decoded.src0;
+		cpu.writeback_reg.output = cpu.decoded.src1i;
 		break;
 
 	case STO:
-		src0 =	REG_SRC1;
-		src1 = 	cpu.decoded.src2i;
-		dram[src0 + src1] = REG_DST;
+		src1 =	cpu.reg_file[cpu.decoded.src1];
+		src2 = 	cpu.decoded.src2i;
+		dram[src1 + src2] = cpu.reg_file[cpu.decoded.src0];
 		break;
 
-	//TODO: BRANCH
 	case CMP:
-		src0 = cpu.reg_file[cpu.decoded.src0];
-		src1 = cpu.reg_file[cpu.decoded.src1];
-		if (src0 < src1) cpu.cmp_reg = (uint8_t) LT;
-		else if (src0 > src1) cpu.cmp_reg = (uint8_t) GT;
-		else if (src0 == src1) cpu.cmp_reg = (uint8_t) EQ;
+		src1 = cpu.reg_file[cpu.decoded.src0];
+		src2 = cpu.reg_file[cpu.decoded.src1];
+		if (src1 < src2) {
+			cpu.writeback_reg.dest = cmp;
+			cpu.writeback_reg.output = (uint32_t) LT;
+		} else if (src1 > src2) {
+			cpu.writeback_reg.dest = cmp;
+			cpu.writeback_reg.output = (uint32_t) GT;
+		} else if (src1 == src2) {
+			cpu.writeback_reg.dest = cmp;
+			cpu.writeback_reg.output = (uint32_t) EQ;
+		}
 		break;
 
 	case BLT:
-		if (cpu.cmp_reg == LT) {
+		if (cpu.reg_file[cmp] == LT) {
 			cpu.pc = cpu.decoded.src0i;
 			flush();
 		}
 		break;
 
 	case BGT:
-		if (cpu.cmp_reg == GT) {
+		if (cpu.reg_file[cmp] == GT) {
 			cpu.pc = cpu.decoded.src0i;
 			flush();
 		}
 		break;
 
 	case BEQ:
-		if (cpu.cmp_reg == EQ) {
+		if (cpu.reg_file[cmp] == EQ) {
 			cpu.pc = cpu.decoded.src0i;
 			flush();
 		}
@@ -256,13 +266,13 @@ void execute(){
 
 	default:
 		break;
-
 	}
-
 }
 
 void writeback(){
-
+//	cout << "dest: " << cpu.writeback_reg.dest << endl;
+//	cout << "ouput: " << cpu.writeback_reg.output << endl;
+	cpu.reg_file[cpu.writeback_reg.dest] = cpu.writeback_reg.output;
 }
 
 void populate_args(){
@@ -303,7 +313,6 @@ int main(int argc, char **argv) {
 	}
 
 	cout << "Input file: " << argv[1] << endl;
-	cpu.cmp_reg = 0;
 
 	populate_args();
 	loader(argv[1]);
@@ -325,12 +334,12 @@ int main(int argc, char **argv) {
 	cout << "Number of instructions run: " << cpu.instructions_executed << endl;
 	cout << "HALT: " << cpu.halt_reg << endl;
 
-	printf("\nCMP_REG: %d\n", cpu.cmp_reg);
+	printf("\nCMP_REG: %d\n", cpu.reg_file[cmp]);
 	cout << "Register File:\n";
 	for (int i = 0; i < MAX_OPREG; i++) {
 		cout << i << ":\t" <<cpu.reg_file[i] << endl;
 	}
-	cout << "CMP: " << cpu.cmp_reg << endl;
+	cout << "CMP: " << cpu.reg_file[cmp] << endl;
 
  	cout << "\nInstructions:\n";
 	for (int i = 0; i < 128; i++){
