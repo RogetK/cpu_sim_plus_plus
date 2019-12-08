@@ -308,13 +308,9 @@ int main(int argc, char **argv) {
 
 	// PIPELINE
 	while (cpu.pc < iram_size && cpu.halt_reg != 1) {
-
 		pipeline();
 		cpu.clk++;
-
 	}
-
-
 
 	/*** OUTPUT PRINTS ***/
 	cout << "*** Processor End ***\n" << endl;
