@@ -93,6 +93,7 @@ void loader(char *input_file) {
 
 void fetch(){
 	strcpy(cpu.cir[0], iram[cpu.pc]);
+	cpu.pc+=1;
 }
 
 void decode(){
@@ -161,69 +162,58 @@ void execute(){
 	cpu.instructions_executed++;
 	switch (cpu.decoded.opcode) {
 	case NOP:
-		// increase pc;
-		cpu.pc+=1;
 		break;
 
 	case ADD:
 		src0 = REG_SRC1;
 		src1 = REG_SRC2;
 		REG_DST = src0 + src1;
-		cpu.pc+=1;
 		break;
 
 	case ADDI:
 		src0 = REG_SRC1;
 		src1 = cpu.decoded.src2i;
 		REG_DST = src0 + src1;
-		cpu.pc+=1;
 		break;
 
 	case SUB:
 		src0 = REG_SRC1;
 		src1 = REG_SRC2;
 		REG_DST = src0 - src1;
-		cpu.pc+=1;
 		break;
 
 	case SUBI:
 		src0 = REG_SRC1;
 		src1 = cpu.decoded.src2i;
 		REG_DST = src0 - src1;
-		cpu.pc+=1;
 		break;
 
 	case MULT:
 		src0 = REG_SRC1;
 		src1 = REG_SRC2;
 		REG_DST = src0 * src1;
-		cpu.pc+=1;
 		break;
 
 	case DIVD:
 		src0 = REG_SRC1;
 		src1 = REG_SRC2;
 		REG_DST = src0 / src1;
-		cpu.pc+=1;
 		break;
 
 	case LD:
 		src0 = REG_SRC1;
 		src1 = cpu.decoded.src2i;
 		REG_DST = dram[src0+src1];
-		cpu.pc+=1;
 		break;
 
 	case LDI:
 		REG_DST = cpu.decoded.src1i;
-		cpu.pc+=1;
 		break;
 
 	case STO:
 		src0 =	REG_SRC1;
 		src1 = 	cpu.decoded.src2i;
 		dram[src0 + src1] = REG_DST;
-		cpu.pc+=1;
 		break;
 
 	//TODO: BRANCH
@@ -233,7 +223,6 @@ void execute(){
 		if (src0 < src1) cpu.cmp_reg = (uint8_t) LT;
 		else if (src0 > src1) cpu.cmp_reg = (uint8_t) GT;
 		else if (src0 == src1) cpu.cmp_reg = (uint8_t) EQ;
-		cpu.pc+=1;
 		break;
 
 	case BLT:
@@ -241,7 +230,6 @@ void execute(){
 			cpu.pc = cpu.decoded.src0i;
 			flush();
 		}
-		else cpu.pc+=1;
 		break;
 
 	case BGT:
@@ -249,7 +237,6 @@ void execute(){
 			cpu.pc = cpu.decoded.src0i;
 			flush();
 		}
-		else cpu.pc+=1;
 		break;
 
 	case BEQ:
@@ -257,12 +244,10 @@ void execute(){
 			cpu.pc = cpu.decoded.src0i;
 			flush();
 		}
-		else cpu.pc+=1;
 		break;
 
 	case HALT:
 		cpu.halt_reg= 1;
-		cpu.pc+=1;
 		break;
 
 	default:
