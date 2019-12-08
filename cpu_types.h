@@ -25,11 +25,12 @@ const char *mode_strings[] = {
 		"text",
 };
 
-
+// 16-bit cpu atm
 typedef enum {
 	r0 = 0, r1, r2, r3,
 	r4, r5, r6, r7,
-//	r8, r9, r10, r11,
+	r8, r9, r10, r11,
+	r12, r13, r14, r15,
 	cmp,
 	MAX_OPREG
 } opreg_t;

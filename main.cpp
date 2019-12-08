@@ -8,11 +8,7 @@
 
 using namespace std;
 
-
-// Variable declaration
-
 /*** FUNCTION DECLARATION ***/
-
 void loader(char *input_file) {
 	ifstream in(input_file);
 	char *assembly = (char *) calloc(40, sizeof(char*));
@@ -24,7 +20,6 @@ void loader(char *input_file) {
 
 	while(in){
 		in.getline(assembly, 40);
-
 		char *label;
 
 		switch(assembly[0]) {
