@@ -10,7 +10,6 @@ using namespace std;
 
 
 // Variable declaration
-unsigned int iram_size = 0;
 
 /*** FUNCTION DECLARATION ***/
 

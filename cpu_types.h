@@ -98,6 +98,6 @@ cpu_t cpu;
 char *iram[128];
 uint32_t dram[128];
 std::map<std::string, int> label_map;
-
+unsigned int iram_size = 0;
 
 #endif /* CPU_TYPES_H_ */
