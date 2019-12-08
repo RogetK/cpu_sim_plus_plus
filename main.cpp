@@ -8,16 +8,8 @@
 
 using namespace std;
 
-//#define REG_DST cpu.writeback_reg.destination
-//#define REG_SRC1 cpu.reg_file[cpu.decoded.src1]
-//#define REG_SRC2 cpu.reg_file[cpu.decoded.src2]
-
 
 // Variable declaration
-char *iram[128];
-uint32_t dram[128];
-std::map<std::string, int> label_map;
-cpu_t cpu;
 unsigned int iram_size = 0;
 
 /*** FUNCTION DECLARATION ***/
@@ -270,8 +262,6 @@ void execute(){
 }
 
 void writeback(){
-//	cout << "dest: " << cpu.writeback_reg.dest << endl;
-//	cout << "ouput: " << cpu.writeback_reg.output << endl;
 	cpu.reg_file[cpu.writeback_reg.dest] = cpu.writeback_reg.output;
 }
 
