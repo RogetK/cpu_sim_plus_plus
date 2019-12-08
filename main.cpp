@@ -8,9 +8,9 @@
 
 using namespace std;
 
-#define REG_DST cpu.reg_file[cpu.decoded.src0]
-#define REG_SRC1 cpu.reg_file[cpu.decoded.src1]
-#define REG_SRC2 cpu.reg_file[cpu.decoded.src2]
+//#define REG_DST cpu.writeback_reg.destination
+//#define REG_SRC1 cpu.reg_file[cpu.decoded.src1]
+//#define REG_SRC2 cpu.reg_file[cpu.decoded.src2]
 
 
 // Variable declaration
@@ -158,40 +158,44 @@ void flush(){
 
 void execute(){
 
-	uint32_t src0, src1;
+	uint32_t src1, src2;
 	cpu.instructions_executed++;
 	switch (cpu.decoded.opcode) {
 	case NOP:
 		break;
 
 	case ADD:
-		src0 = REG_SRC1;
-		src1 = REG_SRC2;
-		REG_DST = src0 + src1;
+		src1 = cpu.reg_file[cpu.decoded.src1];
+		src2 = cpu.reg_file[cpu.decoded.src2];
+		cpu.writeback_reg.dest = cpu.decoded.src0;
+		cpu.writeback_reg.output = src1 + src2;
 		break;
 
 	case ADDI:
-		src0 = REG_SRC1;
-		src1 = cpu.decoded.src2i;
-		REG_DST = src0 + src1;
+		src1 = cpu.reg_file[cpu.decoded.src1];
+		src2 = cpu.decoded.src2i;
+		cpu.writeback_reg.dest = cpu.decoded.src0;
+		cpu.writeback_reg.output = src1 + src2;
 		break;
 
 	case SUB:
-		src0 = REG_SRC1;
-		src1 = REG_SRC2;
-		REG_DST = src0 - src1;
+		src1 = cpu.reg_file[cpu.decoded.src1];
+		src2 = cpu.reg_file[cpu.decoded.src2];
+		cpu.writeback_reg.dest = cpu.decoded.src0;
+		cpu.writeback_reg.output = src1 - src2;
 		break;
 
 	case SUBI:
-		src0 = REG_SRC1;
-		src1 = cpu.decoded.src2i;
-		REG_DST = src0 - src1;
+		src1 = cpu.reg_file[cpu.decoded.src1];
+		src2 = cpu.decoded.src2i;
+		cpu.writeback_reg.dest = cpu.decoded.src0;
+		cpu.writeback_reg.output = src1 - src2;
 		break;
 
 	case MULT:
-		src0 = REG_SRC1;
-		src1 = REG_SRC2;
-		REG_DST = src0 * src1;
+		src1 = REG_SRC1;
+		src2 = REG_SRC2;
+		REG_DST = src1 * src2;
 		break;
 
 	case DIVD:
