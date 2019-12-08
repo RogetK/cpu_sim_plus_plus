@@ -15,8 +15,8 @@ using namespace std;
 
 void loader(char *input_file) {
 	ifstream in(input_file);
-	char *assembly = new char [40];
-
+	char *assembly = (char *) calloc(40, sizeof(char*));
+	char *p = assembly;
 	int mode = no_mode;
 	volatile int iram_loc = 0;
 	volatile int dram_loc = 0;
@@ -79,7 +79,7 @@ void loader(char *input_file) {
 	}
 
 	in.close();
-	delete(assembly);
+	free(p);
 }
 
 void fetch(){
