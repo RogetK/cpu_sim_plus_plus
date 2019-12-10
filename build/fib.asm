@@ -1,21 +1,31 @@
 .text
     ldi r0 #0
+;i r1 size r2
     ldi r1 #0
-    ldi r2 r0 :size
+    ld r2 r0 :size
 
-    ldi r3 #0
+;r3 a r4 b r5 c
+    ldi r3 #1
     ldi r4 #1
-    ldi r5 #1
+    ldi r5 #0
 
-:loop_fib
+:fib
+    add r5 r3 r4
+    mov r3 r4
+    mov r4 r5
+
+    addi r1 r1 #1
+    sto r5 r1 :output
+    cmp r5 r2
+    blt :fib
 
 
-:exit
     halt
     nop
     nop
 
 .data
+
 :size
     100
 

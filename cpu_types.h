@@ -42,6 +42,7 @@ typedef enum {
 	MULT, DIVD,
 	LD, LDI, STO,
 	CMP, BLT, BGT, BEQ,
+	MOV,
 	HALT,
 	MAX_INSTRUCTIONS
 }instructions_t;
@@ -55,6 +56,7 @@ const char *inst_string[MAX_INSTRUCTIONS] = {
 	"mult", "divd",
 	"ld", "ldi", "sto",
 	"cmp", "blt", "bgt", "beq",
+	"mov",
 	"halt",
 };
 

@@ -263,6 +263,11 @@ void execute(int a){
 		}
 		break;
 
+	case MOV:
+		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
+		cpu.writeback_reg[a].output = cpu.reg_file[cpu.decoded[a].src1];
+		break;
+
 	case HALT:
 		cpu.halt_reg= 1;
 		break;
@@ -295,7 +300,7 @@ void populate_args(){
 	instruction_args[BGT]	= 1;
 	instruction_args[BEQ]	= 1;
 	instruction_args[HALT] 	= 0;
-
+	instruction_args[MOV] 	= 2;
 }
 
 void pipeline(int a) {
@@ -334,10 +339,10 @@ int main(int argc, char **argv) {
 	cout << "HALT: " << cpu.halt_reg << endl;
 
 //	printf("\nCMP_REG: %d\n", cpu.reg_file[cmp]);
-//	cout << "Register File:\n";
-//	for (int i = 0; i < MAX_OPREG; i++) {
-//		cout << i << ":\t" <<cpu.reg_file[i] << endl;
-//	}
+	cout << "Register File:\n";
+	for (int i = 0; i < MAX_OPREG; i++) {
+		cout << i << ":\t" <<cpu.reg_file[i] << endl;
+	}
 //	cout << "CMP: " << cpu.reg_file[cmp] << endl;
 
  	cout << "\nInstructions:\n";
