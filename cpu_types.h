@@ -48,7 +48,7 @@ typedef enum {
 
 std::map<int, int> instruction_args;
 
-
+// TODO: mov instruction
 const char *inst_string[MAX_INSTRUCTIONS] = {
 	"nop",
 	"add", "addi", "sub", "subi",
