@@ -77,15 +77,15 @@ void loader(char *input_file) {
 	free(p);
 }
 
-void fetch(){
-	strcpy(cpu.cir[0], iram[cpu.pc]);
+void fetch(int i){
+	strcpy(cpu.cir[i], iram[cpu.pc]);
 	cpu.pc+=1;
 }
 
-void decode(){
-	if (cpu.cir[0][0] == 0) return;
+void decode(int i){
+	if (cpu.cir[i][0] == 0) return;
 	char buffer[40];
-	strcpy(buffer, cpu.cir[0]);
+	strcpy(buffer, cpu.cir[i]);
 
 
 	int arg_num = 0;
@@ -93,40 +93,40 @@ void decode(){
 
 	for (int i = 0; i < MAX_INSTRUCTIONS; ++i) {
 		if (strcmp(instruction, inst_string[i]) == 0) {
-			cpu.decoded.opcode = (instructions_t) i;
+			cpu.decoded[i].opcode = (instructions_t) i;
 		}
 	}
 
-	arg_num = instruction_args.find(cpu.decoded.opcode)->second;
+	arg_num = instruction_args.find(cpu.decoded[0].opcode)->second;
 
 	switch (arg_num) {
 	case 1:{
 		char *arg0_string = strtok(NULL, " \n");
-		if (arg0_string[0] == 'r') cpu.decoded.src0 = (opreg_t) atoi(arg0_string+1);
-		else if (arg0_string[0] == ':') cpu.decoded.src0i = label_map.find(arg0_string)->second;
+		if (arg0_string[0] == 'r') cpu.decoded[0].src0 = (opreg_t) atoi(arg0_string+1);
+		else if (arg0_string[0] == ':') cpu.decoded[0].src0i = label_map.find(arg0_string)->second;
 		break;
 	}
 	case 2:{
 		char *arg0_string = strtok(NULL, " ");
-		if (arg0_string[0] == 'r') cpu.decoded.src0 = (opreg_t) atoi(arg0_string+1);
+		if (arg0_string[0] == 'r') cpu.decoded[0].src0 = (opreg_t) atoi(arg0_string+1);
 
 		char *arg1_string = strtok(NULL, " \n");
-		if (arg1_string[0] == 'r') cpu.decoded.src1 = (opreg_t) atoi(arg1_string+1);
-		else if (arg1_string[0] == '#') cpu.decoded.src1i = atoi(arg1_string+1);
-		else if (arg1_string[0] == ':') cpu.decoded.src1i = label_map.find(arg1_string)->second;
+		if (arg1_string[0] == 'r') cpu.decoded[0].src1 = (opreg_t) atoi(arg1_string+1);
+		else if (arg1_string[0] == '#') cpu.decoded[0].src1i = atoi(arg1_string+1);
+		else if (arg1_string[0] == ':') cpu.decoded[0].src1i = label_map.find(arg1_string)->second;
 		break;
 	}
 	case 3:{
 		char *arg0_string = strtok(NULL, " ");
-		if (arg0_string[0] == 'r') cpu.decoded.src0 = (opreg_t) atoi(arg0_string+1);
+		if (arg0_string[0] == 'r') cpu.decoded[0].src0 = (opreg_t) atoi(arg0_string+1);
 
 		char *arg1_string = strtok(NULL, " ");
-		if (arg1_string[0] == 'r') cpu.decoded.src1 = (opreg_t) atoi(arg1_string+1);
+		if (arg1_string[0] == 'r') cpu.decoded[0].src1 = (opreg_t) atoi(arg1_string+1);
 
 		char *arg2_string = strtok(NULL, " \n");
-		if (arg2_string[0] == '#') cpu.decoded.src2i = atoi(arg2_string+1);
-		else if (arg2_string[0] == 'r') cpu.decoded.src2 = (opreg_t) atoi(arg2_string+1);
-		else if (arg2_string[0] == ':') cpu.decoded.src2i = label_map.find(arg2_string)->second;
+		if (arg2_string[0] == '#') cpu.decoded[0].src2i = atoi(arg2_string+1);
+		else if (arg2_string[0] == 'r') cpu.decoded[0].src2 = (opreg_t) atoi(arg2_string+1);
+		else if (arg2_string[0] == ':') cpu.decoded[0].src2i = label_map.find(arg2_string)->second;
 		break;
 	}
 
@@ -134,115 +134,115 @@ void decode(){
 
 }
 
-void flush(){
-	memset(cpu.cir, 0, 40);
-	cpu.decoded.opcode = NOP;
-	cpu.decoded.src0i = 0;
-	cpu.decoded.src1i = 0;
-	cpu.decoded.src2i = 0;
+void flush(int i){
+	memset(cpu.cir[0], 0, 40);
+	cpu.decoded[0].opcode = NOP;
+	cpu.decoded[0].src0i = 0;
+	cpu.decoded[0].src1i = 0;
+	cpu.decoded[0].src2i = 0;
 }
 
-void execute(){
+void execute(int i){
 
 	uint32_t src1, src2;
 	cpu.instructions_executed++;
-	switch (cpu.decoded.opcode) {
+	switch (cpu.decoded[0].opcode) {
 	case NOP:
 		break;
 
 	case ADD:
-		src1 = cpu.reg_file[cpu.decoded.src1];
-		src2 = cpu.reg_file[cpu.decoded.src2];
-		cpu.writeback_reg.dest = cpu.decoded.src0;
-		cpu.writeback_reg.output = src1 + src2;
+		src1 = cpu.reg_file[cpu.decoded[0].src1];
+		src2 = cpu.reg_file[cpu.decoded[0].src2];
+		cpu.writeback_reg[0].dest = cpu.decoded[0].src0;
+		cpu.writeback_reg[0].output = src1 + src2;
 		break;
 
 	case ADDI:
-		src1 = cpu.reg_file[cpu.decoded.src1];
-		src2 = cpu.decoded.src2i;
-		cpu.writeback_reg.dest = cpu.decoded.src0;
-		cpu.writeback_reg.output = src1 + src2;
+		src1 = cpu.reg_file[cpu.decoded[0].src1];
+		src2 = cpu.decoded[0].src2i;
+		cpu.writeback_reg[0].dest = cpu.decoded[0].src0;
+		cpu.writeback_reg[0].output = src1 + src2;
 		break;
 
 	case SUB:
-		src1 = cpu.reg_file[cpu.decoded.src1];
-		src2 = cpu.reg_file[cpu.decoded.src2];
-		cpu.writeback_reg.dest = cpu.decoded.src0;
-		cpu.writeback_reg.output = src1 - src2;
+		src1 = cpu.reg_file[cpu.decoded[0].src1];
+		src2 = cpu.reg_file[cpu.decoded[0].src2];
+		cpu.writeback_reg[0].dest = cpu.decoded[0].src0;
+		cpu.writeback_reg[0].output = src1 - src2;
 		break;
 
 	case SUBI:
-		src1 = cpu.reg_file[cpu.decoded.src1];
-		src2 = cpu.decoded.src2i;
-		cpu.writeback_reg.dest = cpu.decoded.src0;
-		cpu.writeback_reg.output = src1 - src2;
+		src1 = cpu.reg_file[cpu.decoded[0].src1];
+		src2 = cpu.decoded[0].src2i;
+		cpu.writeback_reg[0].dest = cpu.decoded[0].src0;
+		cpu.writeback_reg[0].output = src1 - src2;
 		break;
 
 	case MULT:
-		src1 = cpu.reg_file[cpu.decoded.src1];
-		src2 = cpu.reg_file[cpu.decoded.src2];
-		cpu.writeback_reg.dest = cpu.decoded.src0;
-		cpu.writeback_reg.output = src1 * src2;
+		src1 = cpu.reg_file[cpu.decoded[0].src1];
+		src2 = cpu.reg_file[cpu.decoded[0].src2];
+		cpu.writeback_reg[0].dest = cpu.decoded[0].src0;
+		cpu.writeback_reg[0].output = src1 * src2;
 		break;
 
 	case DIVD:
-		src1 = cpu.reg_file[cpu.decoded.src1];
-		src2 = cpu.reg_file[cpu.decoded.src2];
-		cpu.writeback_reg.dest = cpu.decoded.src0;
-		cpu.writeback_reg.output = src1 / src2;
+		src1 = cpu.reg_file[cpu.decoded[0].src1];
+		src2 = cpu.reg_file[cpu.decoded[0].src2];
+		cpu.writeback_reg[0].dest = cpu.decoded[0].src0;
+		cpu.writeback_reg[0].output = src1 / src2;
 		break;
 
 	case LD:
-		src1 = cpu.reg_file[cpu.decoded.src1];
-		src2 = cpu.decoded.src2i;
-		cpu.writeback_reg.dest = cpu.decoded.src0;
-		cpu.writeback_reg.output= dram[src1+src2];
+		src1 = cpu.reg_file[cpu.decoded[0].src1];
+		src2 = cpu.decoded[0].src2i;
+		cpu.writeback_reg[0].dest = cpu.decoded[0].src0;
+		cpu.writeback_reg[0].output= dram[src1+src2];
 		break;
 
 	case LDI:
-		cpu.writeback_reg.dest = cpu.decoded.src0;
-		cpu.writeback_reg.output = cpu.decoded.src1i;
+		cpu.writeback_reg[0].dest = cpu.decoded[0].src0;
+		cpu.writeback_reg[0].output = cpu.decoded[0].src1i;
 		break;
 
 	case STO:
-		src1 =	cpu.reg_file[cpu.decoded.src1];
-		src2 = 	cpu.decoded.src2i;
-		dram[src1 + src2] = cpu.reg_file[cpu.decoded.src0];
+		src1 =	cpu.reg_file[cpu.decoded[0].src1];
+		src2 = 	cpu.decoded[0].src2i;
+		dram[src1 + src2] = cpu.reg_file[cpu.decoded[0].src0];
 		break;
 
 	case CMP:
-		src1 = cpu.reg_file[cpu.decoded.src0];
-		src2 = cpu.reg_file[cpu.decoded.src1];
+		src1 = cpu.reg_file[cpu.decoded[0].src0];
+		src2 = cpu.reg_file[cpu.decoded[0].src1];
 		if (src1 < src2) {
-			cpu.writeback_reg.dest = cmp;
-			cpu.writeback_reg.output = (uint32_t) LT;
+			cpu.writeback_reg[0].dest = cmp;
+			cpu.writeback_reg[0].output = (uint32_t) LT;
 		} else if (src1 > src2) {
-			cpu.writeback_reg.dest = cmp;
-			cpu.writeback_reg.output = (uint32_t) GT;
+			cpu.writeback_reg[0].dest = cmp;
+			cpu.writeback_reg[0].output = (uint32_t) GT;
 		} else if (src1 == src2) {
-			cpu.writeback_reg.dest = cmp;
-			cpu.writeback_reg.output = (uint32_t) EQ;
+			cpu.writeback_reg[0].dest = cmp;
+			cpu.writeback_reg[0].output = (uint32_t) EQ;
 		}
 		break;
 
 	case BLT:
 		if (cpu.reg_file[cmp] == LT) {
-			cpu.pc = cpu.decoded.src0i;
-			flush();
+			cpu.pc = cpu.decoded[0].src0i;
+			flush(i);
 		}
 		break;
 
 	case BGT:
 		if (cpu.reg_file[cmp] == GT) {
-			cpu.pc = cpu.decoded.src0i;
-			flush();
+			cpu.pc = cpu.decoded[0].src0i;
+			flush(i);
 		}
 		break;
 
 	case BEQ:
 		if (cpu.reg_file[cmp] == EQ) {
-			cpu.pc = cpu.decoded.src0i;
-			flush();
+			cpu.pc = cpu.decoded[0].src0i;
+			flush(i);
 		}
 		break;
 
@@ -255,8 +255,8 @@ void execute(){
 	}
 }
 
-void writeback(){
-	cpu.reg_file[cpu.writeback_reg.dest] = cpu.writeback_reg.output;
+void writeback(int i){
+	cpu.reg_file[cpu.writeback_reg[0].dest] = cpu.writeback_reg[0].output;
 }
 
 void populate_args(){
@@ -279,11 +279,11 @@ void populate_args(){
 
 }
 
-void pipeline() {
-	writeback();
-	execute();
-	decode();
-	fetch();
+void pipeline(int i) {
+	writeback(i);
+	execute(i);
+	decode(i);
+	fetch(i);
 }
 
 /****** MAIN *******/
@@ -303,7 +303,7 @@ int main(int argc, char **argv) {
 
 	// PIPELINE
 	while (cpu.pc < iram_size && cpu.halt_reg != 1) {
-		pipeline();
+		pipeline(0);
 		cpu.clk++;
 	}
 
@@ -315,11 +315,11 @@ int main(int argc, char **argv) {
 	cout << "HALT: " << cpu.halt_reg << endl;
 
 	printf("\nCMP_REG: %d\n", cpu.reg_file[cmp]);
-	cout << "Register File:\n";
-	for (int i = 0; i < MAX_OPREG; i++) {
-		cout << i << ":\t" <<cpu.reg_file[i] << endl;
-	}
-	cout << "CMP: " << cpu.reg_file[cmp] << endl;
+//	cout << "Register File:\n";
+//	for (int i = 0; i < MAX_OPREG; i++) {
+//		cout << i << ":\t" <<cpu.reg_file[i] << endl;
+//	}
+//	cout << "CMP: " << cpu.reg_file[cmp] << endl;
 
  	cout << "\nInstructions:\n";
 	for (int i = 0; i < 128; i++){

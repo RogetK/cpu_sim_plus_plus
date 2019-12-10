@@ -80,10 +80,9 @@ typedef struct {
 	uint32_t reg_file[32];
 	char cir[4][40];
 	uint8_t cir_ready;
-	decode_instruction_t decoded;
+	decode_instruction_t decoded[4];
 	unsigned int halt_reg;
-	uint32_t stack[40];
-	wbreg_t writeback_reg;
+	wbreg_t writeback_reg[4];
 }cpu_t;
 
 typedef enum {
