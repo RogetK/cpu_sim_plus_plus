@@ -1,25 +1,13 @@
 .text
-    add r2 r0 r0
-    divd r0 r3 r1
-    mult r6 r0 r6
-    sub r0 r0 r0
-    ld r1 r0 :y
-    ldi r5 #23
-    halt
-    cmp r0 r1
+    ldi r0 #0
+    ldi r1 #10
+    ldi r2 #11
+    add r3 r2 r0
+    sto r4 r3 r2
     sto r2 r0 :z
+    halt
 
 .data
-:size
-    3
-:x
-    1
-	2
-	3
-:y
-	4
-	5
-	6
 :z
 	0
 	0

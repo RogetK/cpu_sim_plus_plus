@@ -80,6 +80,7 @@ typedef struct {
 	uint32_t reg_file[32];
 	char cir[4][40];
 	uint8_t cir_ready;
+	decode_instruction_t issue[4];
 	decode_instruction_t decoded[4];
 	unsigned int halt_reg;
 	wbreg_t writeback_reg[4];

@@ -77,13 +77,26 @@ void loader(char *input_file) {
 	free(p);
 }
 
-void issue(){
+void issue(int a){
+	for (int i = 0; i < a+1; i++) {
 
+		for (int j = 0; j < a+1; i++){
+		}
+
+
+	}
 }
 
+
 void fetch(int a){
-	strcpy(cpu.cir[a], iram[cpu.pc]);
-	cpu.pc+=1;
+	for (int i = 0; i < a+1; i++ ){
+		if (cpu.pc > iram_size-1) {
+			memset(cpu.cir[i], 0, 40);
+			return;
+		}
+		strcpy(cpu.cir[i], iram[cpu.pc]);
+		cpu.pc+=1;
+	}
 }
 
 void decode(int a){
@@ -257,6 +270,8 @@ void execute(int a){
 	default:
 		break;
 	}
+
+	cpu.decoded[a].opcode = NOP;
 }
 
 void writeback(int a){
@@ -307,7 +322,7 @@ int main(int argc, char **argv) {
 
 	// PIPELINE
 	while (cpu.pc < iram_size && cpu.halt_reg != 1) {
-		pipeline(2);
+		pipeline(0);
 		cpu.clk++;
 	}
 

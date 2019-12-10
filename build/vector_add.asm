@@ -9,8 +9,6 @@
     addi r0 r0 #1
     cmp r0 r1
     blt :loop_start
-
-    halt
     nop
     nop
 
