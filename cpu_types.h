@@ -13,6 +13,8 @@
 #ifndef CPU_TYPES_H_
 #define CPU_TYPES_H_
 
+#define REG_SIZE 33
+
 typedef enum {
 	no_mode = -1,
 	data,
@@ -64,9 +66,9 @@ typedef struct {
 	instructions_t opcode;
 	opreg_t src0;
 	int src0i;
-	opreg_t src1;
+	int src1;
 	int src1i;
-	opreg_t src2;
+	int src2;
 	int src2i;
 } decode_instruction_t;
 
@@ -87,7 +89,8 @@ typedef struct {
 	unsigned int pc;
 	unsigned int clk;
 	unsigned int instructions_executed;
-	uint32_t reg_file[33];
+	uint32_t reg_file[REG_SIZE];
+	uint32_t reg_lock[REG_SIZE];
 	char cir[4][40];
 	uint8_t cir_ready;
 	rs_t rs[8];

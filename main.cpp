@@ -6,27 +6,29 @@
 #include <fstream>
 #include <string.h>
 
+#define SCALAR 2
+
 using namespace std;
 int halt_flag = 0;
 
 /*** FUNCTION DECLARATION ***/
 void loader(char *input_file) {
 	ifstream in(input_file);
-	char *assembly = (char *) calloc(40, sizeof(char*));
+	char *assembly = (char*) calloc(40, sizeof(char*));
 	char *p = assembly;
 	int mode = no_mode;
 	volatile int iram_loc = 0;
 	volatile int dram_loc = 0;
 	int ram_loc = 0;
 
-	while(in){
+	while (in) {
 		in.getline(assembly, 40);
 		char *label;
 
-		switch(assembly[0]) {
+		switch (assembly[0]) {
 		case '.':
 			for (int i = 0; i < MAX_MODES; i++) {
-				if (!strcmp(assembly+1, mode_strings[i])){
+				if (!strcmp(assembly + 1, mode_strings[i])) {
 					mode = (cpu_loader_mode_t) i;
 				}
 			}
@@ -35,10 +37,10 @@ void loader(char *input_file) {
 		case ':':
 			if (mode == text) {
 				ram_loc = iram_loc;
-			} else if (mode == data){
+			} else if (mode == data) {
 				ram_loc = dram_loc;
 			}
-			if (assembly[strlen(assembly)] == '\n'){
+			if (assembly[strlen(assembly)] == '\n') {
 				assembly[strlen(assembly)] = '\0';
 			}
 
@@ -48,11 +50,11 @@ void loader(char *input_file) {
 			break;
 
 		case ' ':
-			assembly = assembly+3;
+			assembly = assembly + 3;
 			/* no break */
 		case '\t':
 			if (mode == text) {
-				iram[iram_loc] = (char *) malloc(40);
+				iram[iram_loc] = (char*) malloc(40);
 				strcpy(iram[iram_loc], assembly);
 				iram_size++;
 				iram_loc++;
@@ -66,7 +68,7 @@ void loader(char *input_file) {
 			break;
 
 		case ';':
-			cout << "Comment: " << assembly+1 << endl;
+			cout << "Comment: " << assembly + 1 << endl;
 			break;
 
 		default:
@@ -78,7 +80,18 @@ void loader(char *input_file) {
 	free(p);
 }
 
-void issue(int a){
+void issue(int i) {
+
+	for (int a = 0; a < i; a++) {
+
+		if (cpu.reg_lock[cpu.decoded[a].src1]) {
+			cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src1 << endl;
+		}
+
+		if (cpu.reg_lock[cpu.decoded[a].src2]) {
+			cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src2 << endl;
+		}
+
 		cpu.rs[a].rs.opcode = cpu.decoded[a].opcode;
 		cpu.rs[a].rs.src0 = cpu.decoded[a].src0;
 		cpu.rs[a].rs.src1 = cpu.decoded[a].src1;
@@ -86,25 +99,45 @@ void issue(int a){
 		cpu.rs[a].rs.src0i = cpu.decoded[a].src0i;
 		cpu.rs[a].rs.src1i = cpu.decoded[a].src1i;
 		cpu.rs[a].rs.src2i = cpu.decoded[a].src2i;
+
+		switch (cpu.decoded[a].opcode) {
+		case STO:
+		case J:
+		case BLT:
+		case BGT:
+		case BEQ:
+		case NOP:
+			break;
+
+		case HALT:
+			cpu.reg_lock[halt]++;
+			break;
+
+		case CMP:
+			cpu.reg_lock[cmp]++;
+			break;
+		default:
+			cpu.reg_lock[cpu.decoded[a].src0]++;
+		}
+	}
 }
 
-
-void fetch(int a){
-	for (int i = 0; i < a; i++ ){
-		if (cpu.pc > iram_size-1) {
+void fetch(int a) {
+	for (int i = 0; i < a; i++) {
+		if (cpu.pc > iram_size - 1) {
 			memset(cpu.cir[i], 0, 40);
 			return;
 		}
 		strcpy(cpu.cir[i], iram[cpu.pc]);
-		cpu.pc+=1;
+		cpu.pc += 1;
 	}
 }
 
-void decode(int a){
-	if (cpu.cir[a][0] == 0) return;
+void decode(int a) {
+	if (cpu.cir[a][0] == 0)
+		return;
 	char buffer[40];
 	strcpy(buffer, cpu.cir[a]);
-
 
 	int arg_num = 0;
 	char *instruction = strtok(buffer, " ");
@@ -118,48 +151,59 @@ void decode(int a){
 	arg_num = instruction_args.find(cpu.decoded[a].opcode)->second;
 
 	switch (arg_num) {
-	case 1:{
+	case 1: {
 		char *arg0_string = strtok(NULL, " \n");
-		if (arg0_string[0] == 'r') cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string+1);
-		else if (arg0_string[0] == ':') cpu.decoded[a].src0i = label_map.find(arg0_string)->second;
+		if (arg0_string[0] == 'r')
+			cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string + 1);
+		else if (arg0_string[0] == ':')
+			cpu.decoded[a].src0i = label_map.find(arg0_string)->second;
 		break;
 	}
-	case 2:{
+	case 2: {
 		char *arg0_string = strtok(NULL, " ");
-		if (arg0_string[0] == 'r') cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string+1);
+		if (arg0_string[0] == 'r')
+			cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string + 1);
 
 		char *arg1_string = strtok(NULL, " \n");
-		if (arg1_string[0] == 'r') cpu.decoded[a].src1 = (opreg_t) atoi(arg1_string+1);
-		else if (arg1_string[0] == '#') cpu.decoded[a].src1i = atoi(arg1_string+1);
-		else if (arg1_string[0] == ':') cpu.decoded[a].src1i = label_map.find(arg1_string)->second;
+		if (arg1_string[0] == 'r')
+			cpu.decoded[a].src1 = (opreg_t) atoi(arg1_string + 1);
+		else if (arg1_string[0] == '#')
+			cpu.decoded[a].src1i = atoi(arg1_string + 1);
+		else if (arg1_string[0] == ':')
+			cpu.decoded[a].src1i = label_map.find(arg1_string)->second;
 		break;
 	}
-	case 3:{
+	case 3: {
 		char *arg0_string = strtok(NULL, " ");
-		if (arg0_string[0] == 'r') cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string+1);
+		if (arg0_string[0] == 'r')
+			cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string + 1);
 
 		char *arg1_string = strtok(NULL, " ");
-		if (arg1_string[0] == 'r') cpu.decoded[a].src1 = (opreg_t) atoi(arg1_string+1);
+		if (arg1_string[0] == 'r')
+			cpu.decoded[a].src1 = (opreg_t) atoi(arg1_string + 1);
 
 		char *arg2_string = strtok(NULL, " \n");
-		if (arg2_string[0] == '#') cpu.decoded[a].src2i = atoi(arg2_string+1);
-		else if (arg2_string[0] == 'r') cpu.decoded[a].src2 = (opreg_t) atoi(arg2_string+1);
-		else if (arg2_string[0] == ':') cpu.decoded[a].src2i = label_map.find(arg2_string)->second;
+		if (arg2_string[0] == '#')
+			cpu.decoded[a].src2i = atoi(arg2_string + 1);
+		else if (arg2_string[0] == 'r')
+			cpu.decoded[a].src2 = (opreg_t) atoi(arg2_string + 1);
+		else if (arg2_string[0] == ':')
+			cpu.decoded[a].src2i = label_map.find(arg2_string)->second;
 		break;
 	}
 
 	}
 
-	for (int i = a-1; i > 0; i--){
-		if (cpu.rs[a].rs.src0 == cpu.decoded[i].src1){
-			cpu.rs[a].needs[0] = cpu.decoded[i].src1;
-			cpu.rs[a].busy = 1;
-		} else if (cpu.rs[a].rs.src0 == cpu.decoded[i].src2){
-			cpu.rs[a].needs[1] = cpu.decoded[i].src2;
-			cpu.rs[a].busy = 1;
-		}
-	}
-	issue(a);
+//	for (int i = a-1; i > 0; i--){
+//		if (cpu.rs[a].rs.src0 == cpu.decoded[i].src1){
+//			cpu.rs[a].needs[0] = cpu.decoded[i].src1;
+//			cpu.rs[a].busy = 1;
+//		} else if (cpu.rs[a].rs.src0 == cpu.decoded[i].src2){
+//			cpu.rs[a].needs[1] = cpu.decoded[i].src2;
+//			cpu.rs[a].busy = 1;
+//		}
+//	}
+//	issue(a);
 //	cpu.rs[a].rs.opcode = cpu.decoded[a].opcode;
 //	cpu.rs[a].rs.src0 = cpu.decoded[a].src0;
 //	cpu.rs[a].rs.src1 = cpu.decoded[a].src1;
@@ -170,20 +214,15 @@ void decode(int a){
 
 }
 
-void flush(int i){
-	for (int a = 0; a < i; a++){
+void flush(int i) {
+	for (int a = 0; a < i; a++) {
 		memset(cpu.cir[a], 0, 40);
 		cpu.decoded[a].opcode = NOP;
-		cpu.decoded[a].src0i = 0;
-		cpu.decoded[a].src1i = 0;
-		cpu.decoded[a].src2i = 0;
-		cpu.decoded[a].src0 = (opreg_t) 0;
-		cpu.decoded[a].src1 = (opreg_t) 0;
-		cpu.decoded[a].src2 = (opreg_t) 0;
+		cpu.rs[a].rs.opcode = NOP;
 	}
 }
 
-void clear_decoded(int a){
+void clear_decoded(int a) {
 	cpu.decoded[a].opcode = NOP;
 	cpu.decoded[a].src0i = 0;
 	cpu.decoded[a].src1i = 0;
@@ -191,19 +230,20 @@ void clear_decoded(int a){
 
 }
 
-void execute(int a){
-	for (int i = 0; i < a; i++){
-		if (cpu.rs[a].needs[0] == cpu.wbr[i].dest){
-			cpu.rs[a].rs.src1 = cpu.wbr[i].dest;
-		}
-		if (cpu.rs[a].needs[1] == cpu.wbr[i].dest){
-			cpu.rs[a].rs.src2 = cpu.wbr[i].dest;
-		}
-		cpu.rs[a].busy = 0;
-	}
-	if (cpu.rs[a].busy){
-		return;
-	}
+void execute(int a) {
+//	for (int i = 0; i < a; i++){
+//		if (cpu.rs[a].needs[0] == cpu.wbr[i].dest){
+//			cpu.rs[a].rs.src1 = cpu.wbr[i].dest;
+//		}
+//		if (cpu.rs[a].needs[1] == cpu.wbr[i].dest){
+//			cpu.rs[a].rs.src2 = cpu.wbr[i].dest;
+//		}
+//		cpu.rs[a].busy = 0;
+//	}
+//	cout << cpu.rs[a].rs.opcode << endl;
+//	if (cpu.rs[a].busy){
+//		return;
+//	}
 	uint32_t src1, src2;
 	switch (cpu.rs[a].rs.opcode) {
 	case NOP:
@@ -263,7 +303,7 @@ void execute(int a){
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
 		src2 = cpu.rs[a].rs.src2i;
 		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
-		cpu.wbr[a].output= dram[src1+src2];
+		cpu.wbr[a].output = dram[src1 + src2];
 		cpu.wbr[a].write = 1;
 		break;
 
@@ -274,8 +314,8 @@ void execute(int a){
 		break;
 
 	case STO:
-		src1 =	cpu.reg_file[cpu.rs[a].rs.src1];
-		src2 = 	cpu.rs[a].rs.src2i;
+		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
+		src2 = cpu.rs[a].rs.src2i;
 		dram[src1 + src2] = cpu.reg_file[cpu.rs[a].rs.src0];
 		break;
 
@@ -299,22 +339,23 @@ void execute(int a){
 
 	case BLT:
 		if (cpu.reg_file[cmp] == LT) {
+			cout << "BLT\n";
 			cpu.pc = cpu.rs[a].rs.src0i;
-			flush(a);
+			flush(SCALAR);
 		}
 		break;
 
 	case BGT:
 		if (cpu.reg_file[cmp] == GT) {
 			cpu.pc = cpu.rs[a].rs.src0i;
-			flush(a);
+			flush(SCALAR);
 		}
 		break;
 
 	case BEQ:
 		if (cpu.reg_file[cmp] == EQ) {
 			cpu.pc = cpu.rs[a].rs.src0i;
-			flush(a);
+			flush(SCALAR);
 		}
 		break;
 
@@ -326,7 +367,7 @@ void execute(int a){
 
 	case J:
 		cpu.pc = cpu.rs[a].rs.src0i;
-		flush(a);
+		flush(SCALAR);
 		break;
 
 	case HALT:
@@ -339,47 +380,56 @@ void execute(int a){
 		break;
 	}
 
-	if (cpu.reg_file[halt] != 1){
+	if (cpu.reg_file[halt] != 1) {
 		cpu.instructions_executed++;
 	}
 }
 
-void writeback(int a){
-	for (int i = 0; i < a; i++){
+void writeback(int a) {
+	for (int i = 0; i < a; i++) {
 		if (cpu.wbr[i].write) {
 			cpu.reg_file[cpu.wbr[i].dest] = cpu.wbr[i].output;
 			cpu.wbr[i].write = 0;
+			cpu.reg_lock[cpu.wbr[i].dest]--;
+//			cout << "DECREMENT " << cpu.wbr[i].dest << endl;
 		}
 	}
 }
 
-void populate_args(){
+void populate_args() {
 	//TODO: INSTRUCTION NUMBER OF ARGUMENTS ASSIGNMENT
-	instruction_args[NOP] 	= 0;
-	instruction_args[ADD] 	= 3;
-	instruction_args[ADDI] 	= 3;
-	instruction_args[SUB] 	= 3;
-	instruction_args[SUBI] 	= 3;
-	instruction_args[MULT] 	= 3;
-	instruction_args[DIVD] 	= 3;
-	instruction_args[LD] 	= 3;
-	instruction_args[LDI]	= 2;
-	instruction_args[CMP]	= 2;
-	instruction_args[STO]	= 3;
-	instruction_args[BLT]	= 1;
-	instruction_args[BGT]	= 1;
-	instruction_args[BEQ]	= 1;
-	instruction_args[HALT] 	= 0;
-	instruction_args[MOV] 	= 2;
-	instruction_args[J]		= 1;
+	instruction_args[NOP] = 0;
+	instruction_args[ADD] = 3;
+	instruction_args[ADDI] = 3;
+	instruction_args[SUB] = 3;
+	instruction_args[SUBI] = 3;
+	instruction_args[MULT] = 3;
+	instruction_args[DIVD] = 3;
+	instruction_args[LD] = 3;
+	instruction_args[LDI] = 2;
+	instruction_args[CMP] = 2;
+	instruction_args[STO] = 3;
+	instruction_args[BLT] = 1;
+	instruction_args[BGT] = 1;
+	instruction_args[BEQ] = 1;
+	instruction_args[HALT] = 0;
+	instruction_args[MOV] = 2;
+	instruction_args[J] = 1;
 }
 
 void pipeline(int a) {
-	writeback(4);
+	cout << "Tick " << cpu.pc << endl;
+
+	writeback(a);
+
 	for (int i = 0; i < a; i++) execute(i);
-//	issue(a);
+
+	issue (a);
+
 	for (int i = 0; i < a; i++) decode(i);
+
 	fetch(a);
+
 }
 
 /****** MAIN *******/
@@ -399,7 +449,7 @@ int main(int argc, char **argv) {
 
 	// PIPELINE
 	while (cpu.reg_file[halt] != 1) {
-		pipeline(4);
+		pipeline(SCALAR);
 		cpu.clk++;
 	}
 
@@ -408,17 +458,18 @@ int main(int argc, char **argv) {
 	cout << "Program counter: " << cpu.pc << endl;
 	cout << "CPU cycles: " << cpu.clk << endl;
 	cout << "Number of instructions run: " << cpu.instructions_executed << endl;
-	cout << "HALT: " << cpu.halt_reg << endl;
+	cout << "HALT: " << cpu.reg_file[halt] << endl;
 
 //	printf("\nCMP_REG: %d\n", cpu.reg_file[cmp]);
 	cout << "Register File:\n";
 	for (int i = 0; i < MAX_OPREG; i++) {
-		cout << i << ":\t" <<cpu.reg_file[i] << endl;
+		cout << i << ":\t" << cpu.reg_file[i];
+		cout << "\t" << cpu.reg_lock[i] << endl;
 	}
 //	cout << "CMP: " << cpu.reg_file[cmp] << endl;
 
- 	cout << "\nInstructions:\n";
-	for (int i = 0; i < 128; i++){
+	cout << "\nInstructions:\n";
+	for (int i = 0; i < 128; i++) {
 		cout << i << "\t";
 		cout << dram[i] << '\t' << iram[i] << endl;
 	}
