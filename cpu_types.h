@@ -42,7 +42,7 @@ typedef enum {
 	MULT, DIVD,
 	LD, LDI, STO,
 	CMP, BLT, BGT, BEQ,
-	MOV,
+	MOV, J,
 	HALT,
 	MAX_INSTRUCTIONS
 }instructions_t;
@@ -56,7 +56,7 @@ const char *inst_string[MAX_INSTRUCTIONS] = {
 	"mult", "divd",
 	"ld", "ldi", "sto",
 	"cmp", "blt", "bgt", "beq",
-	"mov",
+	"mov", "j",
 	"halt",
 };
 
@@ -82,7 +82,8 @@ typedef struct {
 	uint32_t reg_file[32];
 	char cir[4][40];
 	uint8_t cir_ready;
-	decode_instruction_t issue[4];
+	uint8_t rbusy[4];
+	decode_instruction_t reservation[4];
 	decode_instruction_t decoded[4];
 	unsigned int halt_reg;
 	wbreg_t writeback_reg[4];

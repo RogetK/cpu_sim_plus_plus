@@ -78,18 +78,12 @@ void loader(char *input_file) {
 }
 
 void issue(int a){
-	for (int i = 0; i < a+1; i++) {
 
-		for (int j = 0; j < a+1; i++){
-		}
-
-
-	}
 }
 
 
 void fetch(int a){
-	for (int i = 0; i < a+1; i++ ){
+	for (int i = 0; i < a; i++ ){
 		if (cpu.pc > iram_size-1) {
 			memset(cpu.cir[i], 0, 40);
 			return;
@@ -157,6 +151,14 @@ void flush(int a){
 	cpu.decoded[a].src0i = 0;
 	cpu.decoded[a].src1i = 0;
 	cpu.decoded[a].src2i = 0;
+}
+
+void clear_decoded(int a){
+	cpu.decoded[a].opcode = NOP;
+	cpu.decoded[a].src0i = 0;
+	cpu.decoded[a].src1i = 0;
+	cpu.decoded[a].src2i = 0;
+
 }
 
 void execute(int a){
@@ -252,6 +254,7 @@ void execute(int a){
 	case BGT:
 		if (cpu.reg_file[cmp] == GT) {
 			cpu.pc = cpu.decoded[a].src0i;
+			cout << cpu.pc <<endl;
 			flush(a);
 		}
 		break;
@@ -266,6 +269,12 @@ void execute(int a){
 	case MOV:
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output = cpu.reg_file[cpu.decoded[a].src1];
+//		cpu.reg_file[cpu.decoded[a].src1] = 0;
+		break;
+
+	case J:
+		cpu.pc = cpu.decoded[a].src0i;
+		flush(a);
 		break;
 
 	case HALT:
@@ -301,12 +310,13 @@ void populate_args(){
 	instruction_args[BEQ]	= 1;
 	instruction_args[HALT] 	= 0;
 	instruction_args[MOV] 	= 2;
+	instruction_args[J]		= 1;
 }
 
 void pipeline(int a) {
-	writeback(a);
-	execute(a);
-	decode(a);
+	for (int i = 0; i < a; i++) writeback(i);
+	for (int i = 0; i < a; i++) execute(i);
+	for (int i = 0; i < a; i++) decode(i);
 	fetch(a);
 }
 
@@ -327,7 +337,7 @@ int main(int argc, char **argv) {
 
 	// PIPELINE
 	while (cpu.pc < iram_size && cpu.halt_reg != 1) {
-		pipeline(0);
+		pipeline(4);
 		cpu.clk++;
 	}
 

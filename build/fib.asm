@@ -19,7 +19,10 @@
     cmp r5 r2
     blt :fib
 
+    j :return
+    addi r0 r0 #23
 
+:return
     halt
     nop
     nop
@@ -27,7 +30,7 @@
 .data
 
 :size
-    100
+    500
 
 :output
     0

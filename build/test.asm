@@ -1,11 +1,25 @@
 .text
-    ldi r0 #0
+    ldi r0 #1
+    nop
+    nop
+    nop
     ldi r1 #10
+    nop
+    nop
+    nop
     ldi r2 #11
-    add r3 r2 r0
-    sto r4 r3 r2
-    sto r2 r0 :z
+    nop
+    nop
+    nop
+    addi r3 r2 #10
+    nop
+    nop
+    nop
     halt
+    nop
+    nop
+    nop
+    nop
 
 .data
 :z
