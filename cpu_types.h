@@ -77,6 +77,12 @@ typedef struct {
 
 } wbreg_t;
 
+typedef struct{
+	int busy;
+	opreg_t needs;
+	decode_instruction_t rs;
+}rs_t;
+
 typedef struct {
 	unsigned int pc;
 	unsigned int clk;
@@ -84,11 +90,10 @@ typedef struct {
 	uint32_t reg_file[33];
 	char cir[4][40];
 	uint8_t cir_ready;
-	uint8_t rbusy[8];
-	decode_instruction_t reservation[8];
+	rs_t rs[8];
 	decode_instruction_t decoded[8];
 	unsigned int halt_reg;
-	wbreg_t writeback_reg[8];
+	wbreg_t wbr[8];
 }cpu_t;
 
 typedef enum {

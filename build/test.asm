@@ -1,19 +1,9 @@
 .text
     ldi r0 #2
-    nop
-    nop
-    nop
     ldi r1 #10
-    nop
-    nop
-    nop
     ldi r2 #11
-    nop
-    nop
-    nop
-    addi r3 r2 #10
-    nop
-    nop
+    addi r3 r0 #10
+    add r4 r3 r1
     halt
 
 .data
