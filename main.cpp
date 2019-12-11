@@ -6,8 +6,8 @@
 #include <fstream>
 #include <string.h>
 
-#define SCALAR 2
-#define UNITS 4
+#define SCALAR 1
+#define UNITS 1
 
 using namespace std;
 int halt_flag = 0;
