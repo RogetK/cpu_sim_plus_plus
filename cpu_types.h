@@ -79,7 +79,7 @@ typedef struct {
 
 typedef struct{
 	int busy;
-	opreg_t needs;
+	opreg_t needs[2];
 	decode_instruction_t rs;
 }rs_t;
 

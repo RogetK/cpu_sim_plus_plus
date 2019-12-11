@@ -150,6 +150,15 @@ void decode(int a){
 
 	}
 
+	for (int i = a-1; i > 0; i--){
+		if (cpu.rs[a].rs.src0 == cpu.decoded[i].src1){
+			cpu.rs[a].needs[0] = cpu.decoded[i].src1;
+			cpu.rs[a].busy = 1;
+		} else if (cpu.rs[a].rs.src0 == cpu.decoded[i].src2){
+			cpu.rs[a].needs[1] = cpu.decoded[i].src2;
+			cpu.rs[a].busy = 1;
+		}
+	}
 	issue(a);
 //	cpu.rs[a].rs.opcode = cpu.decoded[a].opcode;
 //	cpu.rs[a].rs.src0 = cpu.decoded[a].src0;
@@ -183,7 +192,18 @@ void clear_decoded(int a){
 }
 
 void execute(int a){
-
+	for (int i = 0; i < a; i++){
+		if (cpu.rs[a].needs[0] == cpu.wbr[i].dest){
+			cpu.rs[a].rs.src1 = cpu.wbr[i].dest;
+		}
+		if (cpu.rs[a].needs[1] == cpu.wbr[i].dest){
+			cpu.rs[a].rs.src2 = cpu.wbr[i].dest;
+		}
+		cpu.rs[a].busy = 0;
+	}
+	if (cpu.rs[a].busy){
+		return;
+	}
 	uint32_t src1, src2;
 	switch (cpu.rs[a].rs.opcode) {
 	case NOP:
