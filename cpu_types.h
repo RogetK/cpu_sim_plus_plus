@@ -79,6 +79,7 @@ typedef struct {
 
 typedef struct{
 	opreg_t needs[3];
+	int needs_count[3];
 	decode_instruction_t rs;
 }rs_t;
 
@@ -94,6 +95,8 @@ typedef struct {
 	decode_instruction_t decoded[8];
 	unsigned int halt_reg;
 	wbreg_t wbr[8];
+	bool stalled;
+	int issue_progress;
 }cpu_t;
 
 typedef enum {

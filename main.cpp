@@ -82,10 +82,13 @@ void loader(char *input_file) {
 
 void issue(int ins, int units) {
 	int skip = 0;
-	for (int a = 0; a < ins; a++) {
+	int a = 0;
+	for (; a < ins; a++) {
 
 		for (; (skip + a) < units; skip++){
-			if (cpu.rs[a+skip].needs[0] == -1 && cpu.rs[a+skip].needs[1] == -1 && cpu.rs[a+skip].needs[2] == -1){
+			if (	cpu.rs[a+skip].needs_count[0] == 0
+					&& cpu.rs[a+skip].needs_count[1] == 0
+					&& cpu.rs[a+skip].needs_count[2] == 0){
 				break;
 			}
 		}
@@ -98,24 +101,27 @@ void issue(int ins, int units) {
 		if (cpu.reg_lock[cpu.decoded[a].src0]){
 			if(cpu.decoded[a].isReg[0]){
 
-				cout << "DEP0 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src0 << endl;
+//				cout << "DEP0 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src0 << endl;
 				cpu.rs[a+skip].needs[0] = (opreg_t) cpu.decoded[a].src0;
+				cpu.rs[a+skip].needs_count[0] = cpu.reg_lock[cpu.decoded[a].src0];
 			}
 		}
 
 		if (cpu.reg_lock[cpu.decoded[a].src1]) {
 			if (cpu.decoded[a].isReg[1]){
 
-				cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src1 << endl;
+//				cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src1 << endl;
 				cpu.rs[a+skip].needs[1] = (opreg_t)cpu.decoded[a].src1;
+				cpu.rs[a+skip].needs_count[1] = cpu.reg_lock[cpu.decoded[a].src1];
 			}
 		}
 
 		if (cpu.reg_lock[cpu.decoded[a].src2]) {
 			if(cpu.decoded[a].isReg[2]){
 
-				cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src2 << endl;
+//				cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src2 << endl;
 				cpu.rs[a+skip].needs[2] = (opreg_t)cpu.decoded[a].src2;
+				cpu.rs[a+skip].needs_count[2] = cpu.reg_lock[cpu.decoded[a].src2];
 			}
 		}
 
@@ -274,19 +280,7 @@ void flush(int i) {
 //}
 //
 void execute(int a) {
-//	for (int i = 0; i < a; i++){
-//		if (cpu.rs[a].needs[0] == cpu.wbr[i].dest){
-//			cpu.rs[a].rs.src1 = cpu.wbr[i].dest;
-//		}
-//		if (cpu.rs[a].needs[1] == cpu.wbr[i].dest){
-//			cpu.rs[a].rs.src2 = cpu.wbr[i].dest;
-//		}
-//		cpu.rs[a].busy = 0;
-//	}
-//	cout << cpu.rs[a].rs.opcode << endl;
-//	if (cpu.rs[a].busy){
-//		return;
-//	}
+
 	uint32_t src1, src2;
 	switch (cpu.rs[a].rs.opcode) {
 	case NOP:
@@ -434,6 +428,13 @@ void writeback(int a) {
 			cpu.reg_file[cpu.wbr[i].dest] = cpu.wbr[i].output;
 			cpu.wbr[i].write = 0;
 			cpu.reg_lock[cpu.wbr[i].dest]--;
+			for (int j = 0; j < a; j++){
+				for (int k = 0; k < 3; k++){
+					if(cpu.rs[j].needs[k] == cpu.wbr[i].dest && cpu.rs[j].needs_count[k] > 0){
+						cpu.rs[j].needs_count[k]--;
+					}
+				}
+			}
 //			cout << "DECREMENT " << cpu.wbr[i].dest << endl;
 		}
 	}
