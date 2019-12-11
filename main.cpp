@@ -78,7 +78,16 @@ void loader(char *input_file) {
 }
 
 void issue(int a){
+	for (int i = 0; i < a; i++){
+		cpu.reservation[i].opcode = cpu.decoded[i].opcode;
+		cpu.reservation[i].src0 = cpu.decoded[i].src0;
+		cpu.reservation[i].src1 = cpu.decoded[i].src1;
+		cpu.reservation[i].src2 = cpu.decoded[i].src2;
 
+		cpu.reservation[i].src0i = cpu.decoded[i].src0i;
+		cpu.reservation[i].src1i = cpu.decoded[i].src1i;
+		cpu.reservation[i].src2i = cpu.decoded[i].src2i;
+	}
 }
 
 
@@ -165,7 +174,7 @@ void execute(int a){
 
 	uint32_t src1, src2;
 	cpu.instructions_executed++;
-	switch (cpu.decoded[a].opcode) {
+	switch (cpu.reservation[a].opcode) {
 	case NOP:
 		break;
 
@@ -285,7 +294,7 @@ void execute(int a){
 		break;
 	}
 
-	cpu.decoded[a].opcode = NOP;
+//	cpu.decoded[a].opcode = NOP;
 }
 
 void writeback(int a){
@@ -316,6 +325,7 @@ void populate_args(){
 void pipeline(int a) {
 	for (int i = 0; i < a; i++) writeback(i);
 	for (int i = 0; i < a; i++) execute(i);
+	issue(a);
 	for (int i = 0; i < a; i++) decode(i);
 	fetch(a);
 }
