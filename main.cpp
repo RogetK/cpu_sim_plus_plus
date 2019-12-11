@@ -6,7 +6,7 @@
 #include <fstream>
 #include <string.h>
 
-#define SCALAR 2
+#define SCALAR 4
 
 using namespace std;
 int halt_flag = 0;
@@ -80,22 +80,50 @@ void loader(char *input_file) {
 	free(p);
 }
 
-void issue(int i) {
+void issue(int ins, int units) {
+	int skip = 0;
+	for (int a = 0; a < ins; a++) {
 
-	for (int a = 0; a < i; a++) {
+		for (; (skip + a) < units; skip++){
+			if (cpu.rs[a+skip].needs[0] == -1 && cpu.rs[a+skip].needs[1] == -1 && cpu.rs[a+skip].needs[2] == -1){
+				break;
+			}
+		}
+
+		if (skip+a == units) {
+			cout << "RAN OUT OF EU\n";
+			break;
+		}
+
+		if (cpu.reg_lock[cpu.decoded[a].src0]){
+			if(cpu.decoded[a].isReg[0]){
+
+				cout << "DEP0 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src0 << endl;
+				cpu.rs[a+skip].needs[0] = (opreg_t) cpu.decoded[a].src0;
+			}
+		}
 
 		if (cpu.reg_lock[cpu.decoded[a].src1]) {
-			cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src1 << endl;
+			if (cpu.decoded[a].isReg[1]){
+
+				cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src1 << endl;
+				cpu.rs[a+skip].needs[1] = (opreg_t)cpu.decoded[a].src1;
+			}
 		}
 
 		if (cpu.reg_lock[cpu.decoded[a].src2]) {
-			cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src2 << endl;
+			if(cpu.decoded[a].isReg[2]){
+
+				cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src2 << endl;
+				cpu.rs[a+skip].needs[2] = (opreg_t)cpu.decoded[a].src2;
+			}
 		}
 
-		cpu.rs[a].rs.opcode = cpu.decoded[a].opcode;
-		cpu.rs[a].rs.src0 = cpu.decoded[a].src0;
-		cpu.rs[a].rs.src1 = cpu.decoded[a].src1;
-		cpu.rs[a].rs.src2 = cpu.decoded[a].src2;
+
+		cpu.rs[a+skip].rs.opcode = cpu.decoded[a].opcode;
+		cpu.rs[a+skip].rs.src0 = cpu.decoded[a].src0;
+		cpu.rs[a+skip].rs.src1 = cpu.decoded[a].src1;
+		cpu.rs[a+skip].rs.src2 = cpu.decoded[a].src2;
 
 		switch (cpu.decoded[a].opcode) {
 		case STO:
@@ -150,42 +178,60 @@ void decode(int a) {
 	switch (arg_num) {
 	case 1: {
 		char *arg0_string = strtok(NULL, " \n");
-		if (arg0_string[0] == 'r')
+		if (arg0_string[0] == 'r') {
 			cpu.decoded[a].src0 = atoi(arg0_string + 1);
-		else if (arg0_string[0] == ':')
+			cpu.decoded[a].isReg[0] = true;
+		} else if (arg0_string[0] == ':'){
 			cpu.decoded[a].src0 = label_map.find(arg0_string)->second;
+			cpu.decoded[a].isReg[0] = false;
+		}
 		break;
 	}
 	case 2: {
 		char *arg0_string = strtok(NULL, " ");
-		if (arg0_string[0] == 'r')
+		if (arg0_string[0] == 'r'){
 			cpu.decoded[a].src0 = atoi(arg0_string + 1);
-
+			cpu.decoded[a].isReg[0] = true;
+		}
 		char *arg1_string = strtok(NULL, " \n");
-		if (arg1_string[0] == 'r')
+		if (arg1_string[0] == 'r'){
 			cpu.decoded[a].src1 =  atoi(arg1_string + 1);
-		else if (arg1_string[0] == '#')
+			cpu.decoded[a].isReg[1] = true;
+		}
+		else if (arg1_string[0] == '#'){
 			cpu.decoded[a].src1 = atoi(arg1_string + 1);
-		else if (arg1_string[0] == ':')
+			cpu.decoded[a].isReg[1] = false;
+		}
+		else if (arg1_string[0] == ':'){
 			cpu.decoded[a].src1 = label_map.find(arg1_string)->second;
+			cpu.decoded[a].isReg[1] = false;
+		}
 		break;
 	}
 	case 3: {
 		char *arg0_string = strtok(NULL, " ");
-		if (arg0_string[0] == 'r')
+		if (arg0_string[0] == 'r'){
 			cpu.decoded[a].src0 = atoi(arg0_string + 1);
-
+			cpu.decoded[a].isReg[0] = true;
+		}
 		char *arg1_string = strtok(NULL, " ");
-		if (arg1_string[0] == 'r')
+		if (arg1_string[0] == 'r'){
 			cpu.decoded[a].src1 = atoi(arg1_string + 1);
-
+			cpu.decoded[a].isReg[1] = true;
+		}
 		char *arg2_string = strtok(NULL, " \n");
-		if (arg2_string[0] == '#')
+		if (arg2_string[0] == '#'){
 			cpu.decoded[a].src2 = atoi(arg2_string + 1);
-		else if (arg2_string[0] == 'r')
+			cpu.decoded[a].isReg[2] = false;
+		}
+		else if (arg2_string[0] == 'r'){
 			cpu.decoded[a].src2 =  atoi(arg2_string + 1);
-		else if (arg2_string[0] == ':')
+			cpu.decoded[a].isReg[2] = true;
+		}
+		else if (arg2_string[0] == ':'){
 			cpu.decoded[a].src2 = label_map.find(arg2_string)->second;
+			cpu.decoded[a].isReg[2] = false;
+		}
 		break;
 	}
 
@@ -421,11 +467,11 @@ void pipeline(int a) {
 
 	for (int i = 0; i < a; i++) execute(i);
 
-	issue (a);
+	issue (a-2, a);
 
-	for (int i = 0; i < a; i++) decode(i);
+	for (int i = 0; i < a-2; i++) decode(i);
 
-	fetch(a);
+	fetch(a-2);
 
 }
 

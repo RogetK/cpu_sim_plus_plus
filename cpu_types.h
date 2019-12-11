@@ -67,6 +67,7 @@ typedef struct {
 	int src0;
 	int src1;
 	int src2;
+	bool isReg[3];
 } decode_instruction_t;
 
 typedef struct {
@@ -77,8 +78,7 @@ typedef struct {
 } wbreg_t;
 
 typedef struct{
-	int busy;
-	opreg_t needs[2];
+	opreg_t needs[3];
 	decode_instruction_t rs;
 }rs_t;
 
