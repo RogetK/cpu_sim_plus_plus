@@ -30,7 +30,7 @@
 .data
 
 :size
-    500
+    1000
 
 :output
     0

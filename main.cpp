@@ -82,9 +82,10 @@ void loader(char *input_file) {
 
 void issue(int ins, int units) {
 	int skip = 0;
-	int a = 0;
+	int a = cpu.issue_progress;
 	for (; a < ins; a++) {
-
+		cpu.stalled = false;
+		cpu.issue_progress = 0;
 		for (; (skip + a) < units; skip++){
 			if (	cpu.rs[a+skip].needs_count[0] == 0
 					&& cpu.rs[a+skip].needs_count[1] == 0
@@ -95,13 +96,15 @@ void issue(int ins, int units) {
 
 		if (skip+a == units) {
 			cout << "RAN OUT OF EU\n";
+			cpu.stalled = true;
+			cpu.issue_progress = a;
 			break;
 		}
 
 		if (cpu.reg_lock[cpu.decoded[a].src0]){
 			if(cpu.decoded[a].isReg[0]){
 
-//				cout << "DEP0 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src0 << endl;
+				cout << "DEP0 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src0 << endl;
 				cpu.rs[a+skip].needs[0] = (opreg_t) cpu.decoded[a].src0;
 				cpu.rs[a+skip].needs_count[0] = cpu.reg_lock[cpu.decoded[a].src0];
 			}
@@ -110,7 +113,7 @@ void issue(int ins, int units) {
 		if (cpu.reg_lock[cpu.decoded[a].src1]) {
 			if (cpu.decoded[a].isReg[1]){
 
-//				cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src1 << endl;
+				cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src1 << endl;
 				cpu.rs[a+skip].needs[1] = (opreg_t)cpu.decoded[a].src1;
 				cpu.rs[a+skip].needs_count[1] = cpu.reg_lock[cpu.decoded[a].src1];
 			}
@@ -119,7 +122,7 @@ void issue(int ins, int units) {
 		if (cpu.reg_lock[cpu.decoded[a].src2]) {
 			if(cpu.decoded[a].isReg[2]){
 
-//				cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src2 << endl;
+				cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src2 << endl;
 				cpu.rs[a+skip].needs[2] = (opreg_t)cpu.decoded[a].src2;
 				cpu.rs[a+skip].needs_count[2] = cpu.reg_lock[cpu.decoded[a].src2];
 			}
@@ -138,6 +141,7 @@ void issue(int ins, int units) {
 		case BGT:
 		case BEQ:
 		case NOP:
+		case BR:
 			break;
 
 		case HALT:
@@ -281,6 +285,13 @@ void flush(int i) {
 //
 void execute(int a) {
 
+	for (int k = 0; k < 3; k++){
+		if (cpu.rs[a].needs_count[k] > 0){
+			cout << "EU RETURN " << a << " "<< k << endl;
+			return;
+		}
+	}
+
 	uint32_t src1, src2;
 	switch (cpu.rs[a].rs.opcode) {
 	case NOP:
@@ -407,6 +418,11 @@ void execute(int a) {
 		flush(SCALAR);
 		break;
 
+	case BR:
+		cpu.pc = cpu.reg_file[cpu.rs[a].rs.src0];
+		flush(SCALAR);
+		break;
+
 	case HALT:
 		cpu.wbr[a].dest = halt;
 		cpu.wbr[a].output = 1;
@@ -417,9 +433,12 @@ void execute(int a) {
 		break;
 	}
 
+
 	if (cpu.reg_file[halt] != 1) {
 		cpu.instructions_executed++;
 	}
+
+	cpu.rs[a].rs.opcode = NOP;
 }
 
 void writeback(int a) {
@@ -459,6 +478,7 @@ void populate_args() {
 	instruction_args[HALT] = 0;
 	instruction_args[MOV] = 2;
 	instruction_args[J] = 1;
+	instruction_args[BR] = 1;
 }
 
 void pipeline(int a) {
@@ -469,6 +489,8 @@ void pipeline(int a) {
 	for (int i = 0; i < a; i++) execute(i);
 
 	issue (a-2, a);
+
+	if (cpu.stalled) return;
 
 	for (int i = 0; i < a-2; i++) decode(i);
 

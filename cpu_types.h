@@ -44,7 +44,7 @@ typedef enum {
 	MULT, DIVD,
 	LD, LDI, STO,
 	CMP, BLT, BGT, BEQ,
-	MOV, J,
+	MOV, J, BR,
 	HALT,
 	MAX_INSTRUCTIONS
 }instructions_t;
@@ -58,7 +58,7 @@ const char *inst_string[MAX_INSTRUCTIONS] = {
 	"mult", "divd",
 	"ld", "ldi", "sto",
 	"cmp", "blt", "bgt", "beq",
-	"mov", "j",
+	"mov", "j", "br",
 	"halt",
 };
 
@@ -109,8 +109,8 @@ typedef enum {
 
 /*** Instantiation of CPU ***/
 cpu_t cpu;
-char *iram[128];
-uint32_t dram[128];
+char *iram[1024];
+uint32_t dram[1024];
 std::map<std::string, int> label_map;
 unsigned int iram_size = 0;
 

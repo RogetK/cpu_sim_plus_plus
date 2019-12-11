@@ -30,9 +30,10 @@
 
 
 :return
+    nop
+    nop
+    nop
     halt
-    nop
-    nop
 
 
 .data
