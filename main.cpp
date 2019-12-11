@@ -96,9 +96,6 @@ void issue(int i) {
 		cpu.rs[a].rs.src0 = cpu.decoded[a].src0;
 		cpu.rs[a].rs.src1 = cpu.decoded[a].src1;
 		cpu.rs[a].rs.src2 = cpu.decoded[a].src2;
-		cpu.rs[a].rs.src0i = cpu.decoded[a].src0i;
-		cpu.rs[a].rs.src1i = cpu.decoded[a].src1i;
-		cpu.rs[a].rs.src2i = cpu.decoded[a].src2i;
 
 		switch (cpu.decoded[a].opcode) {
 		case STO:
@@ -154,41 +151,41 @@ void decode(int a) {
 	case 1: {
 		char *arg0_string = strtok(NULL, " \n");
 		if (arg0_string[0] == 'r')
-			cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string + 1);
+			cpu.decoded[a].src0 = atoi(arg0_string + 1);
 		else if (arg0_string[0] == ':')
-			cpu.decoded[a].src0i = label_map.find(arg0_string)->second;
+			cpu.decoded[a].src0 = label_map.find(arg0_string)->second;
 		break;
 	}
 	case 2: {
 		char *arg0_string = strtok(NULL, " ");
 		if (arg0_string[0] == 'r')
-			cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string + 1);
+			cpu.decoded[a].src0 = atoi(arg0_string + 1);
 
 		char *arg1_string = strtok(NULL, " \n");
 		if (arg1_string[0] == 'r')
-			cpu.decoded[a].src1 = (opreg_t) atoi(arg1_string + 1);
+			cpu.decoded[a].src1 =  atoi(arg1_string + 1);
 		else if (arg1_string[0] == '#')
-			cpu.decoded[a].src1i = atoi(arg1_string + 1);
+			cpu.decoded[a].src1 = atoi(arg1_string + 1);
 		else if (arg1_string[0] == ':')
-			cpu.decoded[a].src1i = label_map.find(arg1_string)->second;
+			cpu.decoded[a].src1 = label_map.find(arg1_string)->second;
 		break;
 	}
 	case 3: {
 		char *arg0_string = strtok(NULL, " ");
 		if (arg0_string[0] == 'r')
-			cpu.decoded[a].src0 = (opreg_t) atoi(arg0_string + 1);
+			cpu.decoded[a].src0 = atoi(arg0_string + 1);
 
 		char *arg1_string = strtok(NULL, " ");
 		if (arg1_string[0] == 'r')
-			cpu.decoded[a].src1 = (opreg_t) atoi(arg1_string + 1);
+			cpu.decoded[a].src1 = atoi(arg1_string + 1);
 
 		char *arg2_string = strtok(NULL, " \n");
 		if (arg2_string[0] == '#')
-			cpu.decoded[a].src2i = atoi(arg2_string + 1);
+			cpu.decoded[a].src2 = atoi(arg2_string + 1);
 		else if (arg2_string[0] == 'r')
-			cpu.decoded[a].src2 = (opreg_t) atoi(arg2_string + 1);
+			cpu.decoded[a].src2 =  atoi(arg2_string + 1);
 		else if (arg2_string[0] == ':')
-			cpu.decoded[a].src2i = label_map.find(arg2_string)->second;
+			cpu.decoded[a].src2 = label_map.find(arg2_string)->second;
 		break;
 	}
 
@@ -222,14 +219,14 @@ void flush(int i) {
 	}
 }
 
-void clear_decoded(int a) {
-	cpu.decoded[a].opcode = NOP;
-	cpu.decoded[a].src0i = 0;
-	cpu.decoded[a].src1i = 0;
-	cpu.decoded[a].src2i = 0;
-
-}
-
+//void clear_decoded(int a) {
+//	cpu.decoded[a].opcode = NOP;
+//	cpu.decoded[a].src0i = 0;
+//	cpu.decoded[a].src1i = 0;
+//	cpu.decoded[a].src2i = 0;
+//
+//}
+//
 void execute(int a) {
 //	for (int i = 0; i < a; i++){
 //		if (cpu.rs[a].needs[0] == cpu.wbr[i].dest){
@@ -252,15 +249,15 @@ void execute(int a) {
 	case ADD:
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
 		src2 = cpu.reg_file[cpu.rs[a].rs.src2];
-		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
 		cpu.wbr[a].output = src1 + src2;
 		cpu.wbr[a].write = 1;
 		break;
 
 	case ADDI:
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
-		src2 = cpu.rs[a].rs.src2i;
-		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
+		src2 = cpu.rs[a].rs.src2;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
 		cpu.wbr[a].output = src1 + src2;
 		cpu.wbr[a].write = 1;
 		break;
@@ -269,7 +266,7 @@ void execute(int a) {
 
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
 		src2 = cpu.reg_file[cpu.rs[a].rs.src2];
-		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
 		cpu.wbr[a].output = src1 - src2;
 		cpu.wbr[a].write = 1;
 		break;
@@ -277,8 +274,8 @@ void execute(int a) {
 	case SUBI:
 
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
-		src2 = cpu.rs[a].rs.src2i;
-		cpu.wbr[a].dest = cpu.rs[0].rs.src0;
+		src2 = cpu.rs[a].rs.src2;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[0].rs.src0;
 		cpu.wbr[a].output = src1 - src2;
 		cpu.wbr[a].write = 1;
 		break;
@@ -286,7 +283,7 @@ void execute(int a) {
 	case MULT:
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
 		src2 = cpu.reg_file[cpu.rs[a].rs.src2];
-		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
 		cpu.wbr[a].output = src1 * src2;
 		cpu.wbr[a].write = 1;
 		break;
@@ -294,28 +291,28 @@ void execute(int a) {
 	case DIVD:
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
 		src2 = cpu.reg_file[cpu.rs[a].rs.src2];
-		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
 		cpu.wbr[a].output = src1 / src2;
 		cpu.wbr[a].write = 1;
 		break;
 
 	case LD:
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
-		src2 = cpu.rs[a].rs.src2i;
-		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
+		src2 = cpu.rs[a].rs.src2;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
 		cpu.wbr[a].output = dram[src1 + src2];
 		cpu.wbr[a].write = 1;
 		break;
 
 	case LDI:
-		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
-		cpu.wbr[a].output = cpu.rs[a].rs.src1i;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
+		cpu.wbr[a].output = cpu.rs[a].rs.src1;
 		cpu.wbr[a].write = 1;
 		break;
 
 	case STO:
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
-		src2 = cpu.rs[a].rs.src2i;
+		src2 = cpu.rs[a].rs.src2;
 		dram[src1 + src2] = cpu.reg_file[cpu.rs[a].rs.src0];
 		break;
 
@@ -340,33 +337,33 @@ void execute(int a) {
 	case BLT:
 		if (cpu.reg_file[cmp] == LT) {
 			cout << "BLT\n";
-			cpu.pc = cpu.rs[a].rs.src0i;
+			cpu.pc = cpu.rs[a].rs.src0;
 			flush(SCALAR);
 		}
 		break;
 
 	case BGT:
 		if (cpu.reg_file[cmp] == GT) {
-			cpu.pc = cpu.rs[a].rs.src0i;
+			cpu.pc = cpu.rs[a].rs.src0;
 			flush(SCALAR);
 		}
 		break;
 
 	case BEQ:
 		if (cpu.reg_file[cmp] == EQ) {
-			cpu.pc = cpu.rs[a].rs.src0i;
+			cpu.pc = cpu.rs[a].rs.src0;
 			flush(SCALAR);
 		}
 		break;
 
 	case MOV:
-		cpu.wbr[a].dest = cpu.rs[a].rs.src0;
+		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
 		cpu.wbr[a].output = cpu.reg_file[cpu.rs[a].rs.src1];
 		cpu.wbr[a].write = 1;
 		break;
 
 	case J:
-		cpu.pc = cpu.rs[a].rs.src0i;
+		cpu.pc = cpu.rs[a].rs.src0;
 		flush(SCALAR);
 		break;
 

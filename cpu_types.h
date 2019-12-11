@@ -64,12 +64,9 @@ const char *inst_string[MAX_INSTRUCTIONS] = {
 
 typedef struct {
 	instructions_t opcode;
-	opreg_t src0;
-	int src0i;
+	int src0;
 	int src1;
-	int src1i;
 	int src2;
-	int src2i;
 } decode_instruction_t;
 
 typedef struct {
