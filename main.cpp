@@ -6,7 +6,8 @@
 #include <fstream>
 #include <string.h>
 
-#define SCALAR 4
+#define SCALAR 2
+#define UNITS 4
 
 using namespace std;
 int halt_flag = 0;
@@ -86,53 +87,67 @@ void issue(int ins, int units) {
 	for (; a < ins; a++) {
 		cpu.stalled = false;
 		cpu.issue_progress = 0;
-		for (; (skip + a) < units; skip++){
-			if (	cpu.rs[a+skip].needs_count[0] == 0
-					&& cpu.rs[a+skip].needs_count[1] == 0
-					&& cpu.rs[a+skip].needs_count[2] == 0){
+		for (; (skip + a) < units; skip++) {
+			if (cpu.rs[a + skip].needs_count[0] == 0
+					&& cpu.rs[a + skip].needs_count[1] == 0
+					&& cpu.rs[a + skip].needs_count[2] == 0) {
 				break;
 			}
 		}
 
-		if (skip+a == units) {
+		if (skip + a == units) {
 			cout << "RAN OUT OF EU\n";
 			cpu.stalled = true;
 			cpu.issue_progress = a;
 			break;
 		}
 
-		if (cpu.reg_lock[cpu.decoded[a].src0]){
-			if(cpu.decoded[a].isReg[0]){
+		if (cpu.reg_lock[cpu.decoded[a].src0]) {
+			if (cpu.decoded[a].isReg[0]) {
 
-				cout << "DEP0 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src0 << endl;
-				cpu.rs[a+skip].needs[0] = (opreg_t) cpu.decoded[a].src0;
-				cpu.rs[a+skip].needs_count[0] = cpu.reg_lock[cpu.decoded[a].src0];
+				cout << "DEP0 FAIL " << cpu.decoded[a].opcode << " "
+						<< cpu.decoded[a].src0 << endl;
+				cpu.rs[a + skip].needs[0] = (opreg_t) cpu.decoded[a].src0;
+				cpu.rs[a + skip].needs_count[0] =
+						cpu.reg_lock[cpu.decoded[a].src0];
 			}
+		} else {
+			cpu.rs[a + skip].needs[0] = (opreg_t) 0;
+			cpu.rs[a + skip].needs_count[0] = 0;
 		}
 
 		if (cpu.reg_lock[cpu.decoded[a].src1]) {
-			if (cpu.decoded[a].isReg[1]){
+			if (cpu.decoded[a].isReg[1]) {
 
-				cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src1 << endl;
-				cpu.rs[a+skip].needs[1] = (opreg_t)cpu.decoded[a].src1;
-				cpu.rs[a+skip].needs_count[1] = cpu.reg_lock[cpu.decoded[a].src1];
+				cout << "DEP1 FAIL " << cpu.decoded[a].opcode << " "
+						<< cpu.decoded[a].src1 << endl;
+				cpu.rs[a + skip].needs[1] = (opreg_t) cpu.decoded[a].src1;
+				cpu.rs[a + skip].needs_count[1] =
+						cpu.reg_lock[cpu.decoded[a].src1];
 			}
+		} else {
+			cpu.rs[a + skip].needs[0] = (opreg_t) 0;
+			cpu.rs[a + skip].needs_count[0] = 0;
 		}
 
 		if (cpu.reg_lock[cpu.decoded[a].src2]) {
-			if(cpu.decoded[a].isReg[2]){
+			if (cpu.decoded[a].isReg[2]) {
 
-				cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " " << cpu.decoded[a].src2 << endl;
-				cpu.rs[a+skip].needs[2] = (opreg_t)cpu.decoded[a].src2;
-				cpu.rs[a+skip].needs_count[2] = cpu.reg_lock[cpu.decoded[a].src2];
+				cout << "DEP2 FAIL " << cpu.decoded[a].opcode << " "
+						<< cpu.decoded[a].src2 << endl;
+				cpu.rs[a + skip].needs[2] = (opreg_t) cpu.decoded[a].src2;
+				cpu.rs[a + skip].needs_count[2] =
+						cpu.reg_lock[cpu.decoded[a].src2];
 			}
+		} else {
+			cpu.rs[a + skip].needs[0] = (opreg_t) 0;
+			cpu.rs[a + skip].needs_count[0] = 0;
 		}
 
-
-		cpu.rs[a+skip].rs.opcode = cpu.decoded[a].opcode;
-		cpu.rs[a+skip].rs.src0 = cpu.decoded[a].src0;
-		cpu.rs[a+skip].rs.src1 = cpu.decoded[a].src1;
-		cpu.rs[a+skip].rs.src2 = cpu.decoded[a].src2;
+		cpu.rs[a + skip].rs.opcode = cpu.decoded[a].opcode;
+		cpu.rs[a + skip].rs.src0 = cpu.decoded[a].src0;
+		cpu.rs[a + skip].rs.src1 = cpu.decoded[a].src1;
+		cpu.rs[a + skip].rs.src2 = cpu.decoded[a].src2;
 
 		switch (cpu.decoded[a].opcode) {
 		case STO:
@@ -154,6 +169,11 @@ void issue(int ins, int units) {
 		default:
 			cpu.reg_lock[cpu.decoded[a].src0]++;
 		}
+	}
+	for (; a + skip < units; a++) {
+		cpu.rs[a + skip].needs[0] = (opreg_t) 0;
+		cpu.rs[a + skip].needs_count[0] = 0;
+		cpu.rs[a + skip].rs.opcode = NOP;
 	}
 }
 
@@ -191,7 +211,7 @@ void decode(int a) {
 		if (arg0_string[0] == 'r') {
 			cpu.decoded[a].src0 = atoi(arg0_string + 1);
 			cpu.decoded[a].isReg[0] = true;
-		} else if (arg0_string[0] == ':'){
+		} else if (arg0_string[0] == ':') {
 			cpu.decoded[a].src0 = label_map.find(arg0_string)->second;
 			cpu.decoded[a].isReg[0] = false;
 		}
@@ -199,20 +219,18 @@ void decode(int a) {
 	}
 	case 2: {
 		char *arg0_string = strtok(NULL, " ");
-		if (arg0_string[0] == 'r'){
+		if (arg0_string[0] == 'r') {
 			cpu.decoded[a].src0 = atoi(arg0_string + 1);
 			cpu.decoded[a].isReg[0] = true;
 		}
 		char *arg1_string = strtok(NULL, " \n");
-		if (arg1_string[0] == 'r'){
-			cpu.decoded[a].src1 =  atoi(arg1_string + 1);
+		if (arg1_string[0] == 'r') {
+			cpu.decoded[a].src1 = atoi(arg1_string + 1);
 			cpu.decoded[a].isReg[1] = true;
-		}
-		else if (arg1_string[0] == '#'){
+		} else if (arg1_string[0] == '#') {
 			cpu.decoded[a].src1 = atoi(arg1_string + 1);
 			cpu.decoded[a].isReg[1] = false;
-		}
-		else if (arg1_string[0] == ':'){
+		} else if (arg1_string[0] == ':') {
 			cpu.decoded[a].src1 = label_map.find(arg1_string)->second;
 			cpu.decoded[a].isReg[1] = false;
 		}
@@ -220,25 +238,23 @@ void decode(int a) {
 	}
 	case 3: {
 		char *arg0_string = strtok(NULL, " ");
-		if (arg0_string[0] == 'r'){
+		if (arg0_string[0] == 'r') {
 			cpu.decoded[a].src0 = atoi(arg0_string + 1);
 			cpu.decoded[a].isReg[0] = true;
 		}
 		char *arg1_string = strtok(NULL, " ");
-		if (arg1_string[0] == 'r'){
+		if (arg1_string[0] == 'r') {
 			cpu.decoded[a].src1 = atoi(arg1_string + 1);
 			cpu.decoded[a].isReg[1] = true;
 		}
 		char *arg2_string = strtok(NULL, " \n");
-		if (arg2_string[0] == '#'){
+		if (arg2_string[0] == '#') {
 			cpu.decoded[a].src2 = atoi(arg2_string + 1);
 			cpu.decoded[a].isReg[2] = false;
-		}
-		else if (arg2_string[0] == 'r'){
-			cpu.decoded[a].src2 =  atoi(arg2_string + 1);
+		} else if (arg2_string[0] == 'r') {
+			cpu.decoded[a].src2 = atoi(arg2_string + 1);
 			cpu.decoded[a].isReg[2] = true;
-		}
-		else if (arg2_string[0] == ':'){
+		} else if (arg2_string[0] == ':') {
 			cpu.decoded[a].src2 = label_map.find(arg2_string)->second;
 			cpu.decoded[a].isReg[2] = false;
 		}
@@ -247,23 +263,6 @@ void decode(int a) {
 
 	}
 
-//	for (int i = a-1; i > 0; i--){
-//		if (cpu.rs[a].rs.src0 == cpu.decoded[i].src1){
-//			cpu.rs[a].needs[0] = cpu.decoded[i].src1;
-//			cpu.rs[a].busy = 1;
-//		} else if (cpu.rs[a].rs.src0 == cpu.decoded[i].src2){
-//			cpu.rs[a].needs[1] = cpu.decoded[i].src2;
-//			cpu.rs[a].busy = 1;
-//		}
-//	}
-//	issue(a);
-//	cpu.rs[a].rs.opcode = cpu.decoded[a].opcode;
-//	cpu.rs[a].rs.src0 = cpu.decoded[a].src0;
-//	cpu.rs[a].rs.src1 = cpu.decoded[a].src1;
-//	cpu.rs[a].rs.src2 = cpu.decoded[a].src2;
-//	cpu.rs[a].rs.src0i = cpu.decoded[a].src0i;
-//	cpu.rs[a].rs.src1i = cpu.decoded[a].src1i;
-//	cpu.rs[a].rs.src2i = cpu.decoded[a].src2i;
 
 }
 
@@ -275,19 +274,12 @@ void flush(int i) {
 	}
 }
 
-//void clear_decoded(int a) {
-//	cpu.decoded[a].opcode = NOP;
-//	cpu.decoded[a].src0i = 0;
-//	cpu.decoded[a].src1i = 0;
-//	cpu.decoded[a].src2i = 0;
-//
-//}
-//
+
 void execute(int a) {
 
-	for (int k = 0; k < 3; k++){
-		if (cpu.rs[a].needs_count[k] > 0){
-			cout << "EU RETURN " << a << " "<< k << endl;
+	for (int k = 0; k < 3; k++) {
+		if (cpu.rs[a].needs_count[k] > 0) {
+			cout << "EU RETURN " << a << " " << k << endl;
 			return;
 		}
 	}
@@ -353,6 +345,7 @@ void execute(int a) {
 		cpu.wbr[a].dest = (opreg_t) cpu.rs[a].rs.src0;
 		cpu.wbr[a].output = dram[src1 + src2];
 		cpu.wbr[a].write = 1;
+		cout << "LD: Loaded " << cpu.wbr[a].output << " from " << src1+src2 << endl;
 		break;
 
 	case LDI:
@@ -365,6 +358,7 @@ void execute(int a) {
 		src1 = cpu.reg_file[cpu.rs[a].rs.src1];
 		src2 = cpu.rs[a].rs.src2;
 		dram[src1 + src2] = cpu.reg_file[cpu.rs[a].rs.src0];
+		cout << "STO wrote " << cpu.reg_file[cpu.rs[a].rs.src0] << " to " << src1+src2 << endl;
 		break;
 
 	case CMP:
@@ -433,8 +427,7 @@ void execute(int a) {
 		break;
 	}
 
-
-	if (cpu.reg_file[halt] != 1) {
+	if (cpu.reg_file[halt] != 1 && cpu.rs[a].rs.opcode != NOP) {
 		cpu.instructions_executed++;
 	}
 
@@ -447,13 +440,15 @@ void writeback(int a) {
 			cpu.reg_file[cpu.wbr[i].dest] = cpu.wbr[i].output;
 			cpu.wbr[i].write = 0;
 			cpu.reg_lock[cpu.wbr[i].dest]--;
-			for (int j = 0; j < a; j++){
-				for (int k = 0; k < 3; k++){
-					if(cpu.rs[j].needs[k] == cpu.wbr[i].dest && cpu.rs[j].needs_count[k] > 0){
+			for (int j = 0; j < a; j++) {
+				for (int k = 0; k < 3; k++) {
+					if (cpu.rs[j].needs[k] == cpu.wbr[i].dest
+							&& cpu.rs[j].needs_count[k] > 0) {
 						cpu.rs[j].needs_count[k]--;
 					}
 				}
 			}
+			cout << "WB: Wrote " << cpu.reg_file[cpu.wbr[i].dest] << " to reg " << cpu.wbr[i].dest << endl;
 //			cout << "DECREMENT " << cpu.wbr[i].dest << endl;
 		}
 	}
@@ -484,17 +479,20 @@ void populate_args() {
 void pipeline(int a) {
 	cout << "Tick " << cpu.pc << endl;
 
-	writeback(a);
+	writeback(UNITS);
 
-	for (int i = 0; i < a; i++) execute(i);
+	for (int i = 0; i < UNITS; i++)
+		execute(i);
 
-	issue (a-2, a);
+	issue(SCALAR, UNITS);
 
-	if (cpu.stalled) return;
+	if (cpu.stalled)
+		return;
 
-	for (int i = 0; i < a-2; i++) decode(i);
+	for (int i = 0; i < SCALAR; i++)
+		decode(i);
 
-	fetch(a-2);
+	fetch(SCALAR);
 
 }
 
@@ -534,10 +532,10 @@ int main(int argc, char **argv) {
 	}
 //	cout << "CMP: " << cpu.reg_file[cmp] << endl;
 
-	cout << "\nInstructions:\n";
-	for (int i = 0; i < 128; i++) {
+	cout << "\nMemory:\n";
+	for (int i = 0; i < 64; i++) {
 		cout << i << "\t";
-		cout << dram[i] << '\t' << iram[i] << endl;
+		cout << dram[i] << '\t' << endl;
 	}
 
 	return EXIT_SUCCESS;

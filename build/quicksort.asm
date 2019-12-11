@@ -32,10 +32,10 @@
 :loop2
     subi r7 r5 #1
     ld r6 r7 :list
-    sto r6 r5 :list
-    mov r5 r7
-    cmp r7 r1
-    bgt :loop2
+;    sto r6 r5 :list
+;    mov r5 r7
+;    cmp r7 r1
+;    bgt :loop2
 
 
     addi r1 r1 #1
