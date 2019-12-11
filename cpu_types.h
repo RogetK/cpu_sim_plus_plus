@@ -31,7 +31,7 @@ typedef enum {
 	r4, r5, r6, r7,
 	r8, r9, r10, r11,
 	r12, r13, r14, r15,
-	cmp,
+	cmp, halt,
 	MAX_OPREG
 } opreg_t;
 
@@ -73,20 +73,22 @@ typedef struct {
 typedef struct {
 	opreg_t dest;
 	uint32_t output;
+	int write;
+
 } wbreg_t;
 
 typedef struct {
 	unsigned int pc;
 	unsigned int clk;
 	unsigned int instructions_executed;
-	uint32_t reg_file[32];
+	uint32_t reg_file[33];
 	char cir[4][40];
 	uint8_t cir_ready;
-	uint8_t rbusy[4];
-	decode_instruction_t reservation[4];
-	decode_instruction_t decoded[4];
+	uint8_t rbusy[8];
+	decode_instruction_t reservation[8];
+	decode_instruction_t decoded[8];
 	unsigned int halt_reg;
-	wbreg_t writeback_reg[4];
+	wbreg_t writeback_reg[8];
 }cpu_t;
 
 typedef enum {

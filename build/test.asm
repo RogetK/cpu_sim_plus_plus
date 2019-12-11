@@ -1,5 +1,5 @@
 .text
-    ldi r0 #1
+    ldi r0 #2
     nop
     nop
     nop
@@ -14,12 +14,7 @@
     addi r3 r2 #10
     nop
     nop
-    nop
     halt
-    nop
-    nop
-    nop
-    nop
 
 .data
 :z

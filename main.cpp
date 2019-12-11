@@ -7,6 +7,7 @@
 #include <string.h>
 
 using namespace std;
+int halt_flag = 0;
 
 /*** FUNCTION DECLARATION ***/
 void loader(char *input_file) {
@@ -83,7 +84,6 @@ void issue(int a){
 		cpu.reservation[i].src0 = cpu.decoded[i].src0;
 		cpu.reservation[i].src1 = cpu.decoded[i].src1;
 		cpu.reservation[i].src2 = cpu.decoded[i].src2;
-
 		cpu.reservation[i].src0i = cpu.decoded[i].src0i;
 		cpu.reservation[i].src1i = cpu.decoded[i].src1i;
 		cpu.reservation[i].src2i = cpu.decoded[i].src2i;
@@ -173,8 +173,7 @@ void clear_decoded(int a){
 void execute(int a){
 
 	uint32_t src1, src2;
-	cpu.instructions_executed++;
-	switch (cpu.reservation[a].opcode) {
+	switch (cpu.decoded[a].opcode) {
 	case NOP:
 		break;
 
@@ -183,6 +182,7 @@ void execute(int a){
 		src2 = cpu.reg_file[cpu.decoded[a].src2];
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output = src1 + src2;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case ADDI:
@@ -190,20 +190,25 @@ void execute(int a){
 		src2 = cpu.decoded[a].src2i;
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output = src1 + src2;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case SUB:
+
 		src1 = cpu.reg_file[cpu.decoded[a].src1];
 		src2 = cpu.reg_file[cpu.decoded[a].src2];
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output = src1 - src2;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case SUBI:
+
 		src1 = cpu.reg_file[cpu.decoded[a].src1];
 		src2 = cpu.decoded[a].src2i;
 		cpu.writeback_reg[a].dest = cpu.decoded[0].src0;
 		cpu.writeback_reg[a].output = src1 - src2;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case MULT:
@@ -211,6 +216,7 @@ void execute(int a){
 		src2 = cpu.reg_file[cpu.decoded[a].src2];
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output = src1 * src2;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case DIVD:
@@ -218,6 +224,7 @@ void execute(int a){
 		src2 = cpu.reg_file[cpu.decoded[a].src2];
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output = src1 / src2;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case LD:
@@ -225,11 +232,13 @@ void execute(int a){
 		src2 = cpu.decoded[a].src2i;
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output= dram[src1+src2];
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case LDI:
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output = cpu.decoded[a].src1i;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case STO:
@@ -244,12 +253,15 @@ void execute(int a){
 		if (src1 < src2) {
 			cpu.writeback_reg[a].dest = cmp;
 			cpu.writeback_reg[a].output = (uint32_t) LT;
+			cpu.writeback_reg[a].write = 1;
 		} else if (src1 > src2) {
 			cpu.writeback_reg[a].dest = cmp;
 			cpu.writeback_reg[a].output = (uint32_t) GT;
+			cpu.writeback_reg[a].write = 1;
 		} else if (src1 == src2) {
 			cpu.writeback_reg[a].dest = cmp;
 			cpu.writeback_reg[a].output = (uint32_t) EQ;
+			cpu.writeback_reg[a].write = 1;
 		}
 		break;
 
@@ -263,7 +275,6 @@ void execute(int a){
 	case BGT:
 		if (cpu.reg_file[cmp] == GT) {
 			cpu.pc = cpu.decoded[a].src0i;
-			cout << cpu.pc <<endl;
 			flush(a);
 		}
 		break;
@@ -278,7 +289,7 @@ void execute(int a){
 	case MOV:
 		cpu.writeback_reg[a].dest = cpu.decoded[a].src0;
 		cpu.writeback_reg[a].output = cpu.reg_file[cpu.decoded[a].src1];
-//		cpu.reg_file[cpu.decoded[a].src1] = 0;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	case J:
@@ -287,18 +298,27 @@ void execute(int a){
 		break;
 
 	case HALT:
-		cpu.halt_reg= 1;
+		cpu.writeback_reg[a].dest = halt;
+		cpu.writeback_reg[a].output = 1;
+		cpu.writeback_reg[a].write = 1;
 		break;
 
 	default:
 		break;
 	}
 
-//	cpu.decoded[a].opcode = NOP;
+	if (cpu.reg_file[halt] != 1){
+		cpu.instructions_executed++;
+	}
 }
 
 void writeback(int a){
-	cpu.reg_file[cpu.writeback_reg[a].dest] = cpu.writeback_reg[a].output;
+	for (int i = 0; i < a; i++){
+		if (cpu.writeback_reg[i].write) {
+			cpu.reg_file[cpu.writeback_reg[i].dest] = cpu.writeback_reg[i].output;
+			cpu.writeback_reg[i].write = 0;
+		}
+	}
 }
 
 void populate_args(){
@@ -323,7 +343,7 @@ void populate_args(){
 }
 
 void pipeline(int a) {
-	for (int i = 0; i < a; i++) writeback(i);
+	writeback(4);
 	for (int i = 0; i < a; i++) execute(i);
 	issue(a);
 	for (int i = 0; i < a; i++) decode(i);
@@ -346,7 +366,7 @@ int main(int argc, char **argv) {
 	loader(argv[1]);
 
 	// PIPELINE
-	while (cpu.pc < iram_size && cpu.halt_reg != 1) {
+	while (cpu.reg_file[halt] != 1) {
 		pipeline(4);
 		cpu.clk++;
 	}
