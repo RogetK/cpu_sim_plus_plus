@@ -6,8 +6,8 @@
 #include <fstream>
 #include <string.h>
 
-#define SCALAR 1
-#define UNITS 1
+#define SCALAR 2
+#define UNITS 4
 
 using namespace std;
 int halt_flag = 0;
@@ -533,7 +533,7 @@ int main(int argc, char **argv) {
 //	cout << "CMP: " << cpu.reg_file[cmp] << endl;
 
 	cout << "\nMemory:\n";
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 24; i++) {
 		cout << i << "\t";
 		cout << dram[i] << '\t' << endl;
 	}
